@@ -1,0 +1,28 @@
+Genfrag version 0.1.0
+    by Pjotr Prins and Trevor Wennblom
+    http://genfrag.rubyforge.org
+    (the "Rough Draught" release)
+
+== DESCRIPTION:
+
+GenFrag allows for rapid in-silico searching of fragments cut by
+different restriction enzymes in large nucleotide acid databases,
+followed by matching specificity adapters which allow a further data
+reduction when looking for differential expression of genes and
+markers.
+
+
+== REQUIREMENTS:
+
+* bioruby
+* sqlite3-ruby
+
+== INSTALL:
+
+* sudo gem install genfrag
+
+== LICENSE:
+
+Copyright (c) 2009 Pjotr Prins and Trevor Wennblom
+
+Distributed under the same terms as the Ruby License - see LICENSE.txt

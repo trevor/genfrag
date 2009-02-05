@@ -1,0 +1,9 @@
+<% if @ops.verbose %>
+RE5: <%= @ops.re5 %>
+<%= @re5_ds.aligned_strands_with_cuts.primary %>
+<%= @re5_ds.aligned_strands_with_cuts.complement %>
+
+RE3: <%= @ops.re3 %>
+<%= @re3_ds.aligned_strands_with_cuts.primary %>
+<%= @re3_ds.aligned_strands_with_cuts.complement %>
+<% end %>
