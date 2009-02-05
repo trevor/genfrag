@@ -3,8 +3,9 @@ require File.expand_path(
     File.join(File.dirname(__FILE__), %w[.. .. spec_helper]))
     
 # --------------------------------------------------------------------------
-describe Genfrag::App::IndexCommand do
-  
+describe Genfrag::App::SearchCommand do
+
+=begin 
   before :all do
     @out = StringIO.new
     @err = StringIO.new
@@ -252,6 +253,7 @@ describe Genfrag::App::IndexCommand do
     end # a.fasta
     
   end # with working example
+=end
   
 end
 

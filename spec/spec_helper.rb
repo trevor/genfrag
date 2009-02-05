@@ -13,6 +13,12 @@ GENFRAG_SPEC_DATA_DIR = File.join(File.dirname(__FILE__), %w[data])
 GENFRAG_SPEC_TMP_DIR = File.join(Dir.tmpdir, %w[genfrag])
 puts "tmp dir is #{GENFRAG_SPEC_TMP_DIR}"
 
+def compare(filename, ext)
+  generated = File.join(@working_output_dir, filename + ext)
+  frozen = File.join(@frozen_output_dir, filename + ext)
+  FileUtils.compare_file(generated, frozen)
+end
+
 Spec::Runner.configure do |config|
   # == Mock Framework
   #

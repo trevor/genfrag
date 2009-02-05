@@ -17,6 +17,7 @@ class Command
     #  :name => nil,
     #  :output_dir => nil
     }
+    @ops = OpenStruct.new
     #@options[:skeleton_dir] = ::Bones.path('data') unless test(?d, skeleton_dir)
   end
 
@@ -88,6 +89,14 @@ class Command
           lambda {
             options[:quiet] = true
           }],
+      :indir => ['-i', '--in DIR', String, 'input directory', "(default #{Dir.pwd})",
+          lambda{ |value|
+            options[:indir] = value
+          }],
+      :outdir => ['-o', '--out DIR', String, 'output directory', "(default #{Dir.pwd})",
+          lambda{ |value|
+            options[:outdir] = value
+          }],
       :re5 => ['-5', '--re5 ENZYME', String, "5' restriction enzyme",
           lambda { |value|
             options[:re5] = value
@@ -140,11 +149,11 @@ class Command
             options[:adapter3_size] = value
           }],
           
-      :adapter5_sequence => ['-i', '--adapter5-sequence SEQUENCE', String, '',
+      :adapter5_sequence => ['-w', '--adapter5-sequence SEQUENCE', String, '',
           lambda { |value|
             options[:adapter5_sequence] = value
           }],
-      :adapter3_sequence => ['-j', '--adapter3-sequence SEQUENCE', String, '',
+      :adapter3_sequence => ['-x', '--adapter3-sequence SEQUENCE', String, '',
           lambda { |value|
             options[:adapter3_sequence] = value
           }],

@@ -11,11 +11,13 @@ class SearchCommand < Command
     input_filenames = [@input_filenames].flatten
     processed_adapters=nil
     
+    validate_options(options)
+    
     if @ops.sqlite
-      processed_fasta_file = GenfragSearch::ProcessFile.process_db_fasta_file( SQLite3::Database.new( name_normalized_fasta(input_filenames) + '.db' ) )
+      processed_fasta_file  = GenfragSearch::ProcessFile.process_db_fasta_file( SQLite3::Database.new( name_normalized_fasta(input_filenames) + '.db' ) )
       processed_freq_lookup = GenfragSearch::ProcessFile.process_db_freq_lookup( SQLite3::Database.new( name_freq_lookup(input_filenames) + '.db' ) )
     else
-      processed_fasta_file = GenfragSearch::ProcessFile.process_tdf_fasta_file(  IO.readlines( name_normalized_fasta(input_filenames) + '.tdf' ) )
+      processed_fasta_file  = GenfragSearch::ProcessFile.process_tdf_fasta_file(  IO.readlines( name_normalized_fasta(input_filenames) + '.tdf' ) )
       processed_freq_lookup = GenfragSearch::ProcessFile.process_tdf_freq_lookup( IO.readlines( name_freq_lookup(input_filenames) + '.tdf' ) )
     end
     
@@ -26,7 +28,7 @@ class SearchCommand < Command
     run(options, processed_fasta_file, processed_freq_lookup, processed_adapters)
   end
 
-  def parse( args )
+  def opt_parser
     std_opts = standard_options
 
     opts = OptionParser.new
@@ -42,6 +44,8 @@ class SearchCommand < Command
     opts.on(*std_opts[:verbose])
     opts.on(*std_opts[:quiet])
     opts.on(*std_opts[:tracktime])
+    opts.on(*std_opts[:indir])
+    opts.on(*std_opts[:outdir])
     opts.on(*std_opts[:sqlite])
     opts.on(*std_opts[:re5])
     opts.on(*std_opts[:re3])
@@ -62,29 +66,70 @@ class SearchCommand < Command
     opts.on( '-h', '--help', 'show this message' ) { @out.puts opts; exit }
     
     opts.separator '  Examples:'
-    opts.separator '    genfrag search -f example.fasta --RE5 BstYI --RE3 MseI --add 26 --adapter5 ct --adapter3 aa --size 190,215'
-    opts.separator '    genfrag search -f example.fasta --RE5 BstYI --RE3 MseI --adapter5-size 11 --adapter5 tt --adapter3-size 15 --size 168'
-    opts.separator '    genfrag search -f example.fasta --RE5 BstYI --RE3 MseI --adapter5-sequence GACTGCGTAGTGATC --adapter5 tt --adapter3-size 15 --size 168'
-    opts.separator '    genfrag search -f example.fasta --RE5 BstYI --RE3 MseI --adapter5-size 11 --adapter5 ct --adapter3-size 15 --adapter3 aa --size 190,215'
-    opts.separator '    genfrag search -f example.fasta --RE5 BstYI --RE3 MseI --add 26 --named-adapter5 BstYI-T4 --named-adapter3 MseI-21 --size 190,215'
-
-    # parse the command line arguments
-    opts.parse! args
+    opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --add 26 --adapter5 ct --adapter3 aa --size 190,215'
+    opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5-size 11 --adapter5 tt --adapter3-size 15 --size 168'
+    opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5-sequence GACTGCGTAGTGATC --adapter5 tt --adapter3-size 15 --size 168'
+    opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5-size 11 --adapter5 ct --adapter3-size 15 --adapter3 aa --size 190,215'
+    opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --add 26 --named-adapter5 BstYI-T4 --named-adapter3 MseI-21 --size 190,215'
+    opts
+  end
+  
+  def parse( args )
+    opts = opt_parser
 
     if args.empty?
       @out.puts opts
       exit 1
     end
     
-    if options[:filefasta] == nil
-      @out.puts "must supply fasta filename"
-      @out.puts opts
-      exit 1
-    end
+  # parse the command line arguments
+    opts.parse! args
     
   end
   
-  def run(ops=OpenStruct.new, processed_fasta_file=nil, processed_freq_lookup=nil, processed_adapters=nil)
+  def validate_options(o)
+    if o[:filefasta] == nil
+      @out.puts
+      @err.puts "missing option: must supply fasta filename"
+      @out.puts
+      @out.puts opt_parser
+      exit 1
+    end
+    
+    if o[:re5] == nil
+      @out.puts
+      @err.puts "missing option: re5"
+      @out.puts
+      @out.puts opt_parser
+      exit 1
+    end
+    
+    if o[:re3] == nil
+      @out.puts
+      @err.puts "missing option: re3"
+      @out.puts
+      @out.puts opt_parser
+      exit 1
+    end
+    
+    begin
+      Bio::RestrictionEnzyme::DoubleStranded.new(o[:re3])
+    rescue
+      @err.puts "re3 is not an enzyme name"
+      @out.puts opt_parser
+      exit 1
+    end
+    
+    begin
+      Bio::RestrictionEnzyme::DoubleStranded.new(o[:re5])
+    rescue
+      @err.puts "re5 is not an enzyme name"
+      @out.puts opt_parser
+      exit 1
+    end
+  end
+  
+  def run(ops=OpenStruct.new, processed_fasta_file=nil, processed_freq_lookup=nil, processed_adapters=nil, cli=false)
     if ops.kind_of? OpenStruct
       @ops = ops.dup
     elsif ops.kind_of? Hash
@@ -108,7 +153,7 @@ class SearchCommand < Command
     @sequences = processed_fasta_file
     @adapters = {}
     @re5_ds, @re3_ds = [@ops.re5, @ops.re3].map {|x| Bio::RestrictionEnzyme::DoubleStranded.new(x)}
-    puts_1
+    cli_p(cli,template('exact'))
 
     if @ops.named_adapter5 and @ops.adapter5
       raise ArgumentError, "Cannot have both 'adapter5' and 'named_adapter5'"
@@ -177,7 +222,15 @@ class SearchCommand < Command
       end
     end
   
-    puts_2(results)
+  # FIXME
+    if results.size == 0
+      print "No results" if !@ops.quiet  # Trevor: you probably want this different
+    end
+    results.each do |r|
+      @r = r
+      cli_p(cli,template('results_exact'))
+    end
+
     return results
   end
   
@@ -214,21 +267,6 @@ class SearchCommand < Command
     end
     l.call(5)
     l.call(3)
-  end
-  
-  def puts_1
-    p template('exact')
-  end
-  
-  def puts_2(results)
-  # FIXME
-    if results.size == 0
-      print "No results" if !@ops.quiet  # Trevor: you probably want this different
-    end
-    results.each do |r|
-      @r = r
-      p template('results_exact')
-    end
   end
   
   def template(x)

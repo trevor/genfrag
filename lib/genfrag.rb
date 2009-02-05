@@ -2,7 +2,7 @@
 module Genfrag
 
   # :stopdoc:
-  VERSION = '0.1.0'
+  VERSION = '0.0.0.1'
   LIBPATH = ::File.expand_path(::File.dirname(__FILE__)) + ::File::SEPARATOR
   PATH = ::File.dirname(LIBPATH) + ::File::SEPARATOR
   # :startdoc:
@@ -42,6 +42,42 @@ module Genfrag
     Dir.glob(search_me).sort.each {|rb| require rb}
   end
 
+  def self.tracktime verbose=true, f=nil
+  # Info:: Pjotr's shared Ruby modules
+  # Author:: Pjotr Prins
+  # mail:: pjotr.public05@thebird.nl
+  # Copyright:: July 2007
+  # License:: Ruby License
+    begin
+      t1 = Time.now
+      yield
+
+      ensure
+
+        t2 = Time.now
+        dt = t2 - t1
+        if verbose
+          if f == nil
+            f = $stdout
+          end
+          f.print "\nElapsed time "
+          hours = dt.to_i/3600
+          dt -= hours*3600
+          mins  = dt.to_i/60
+          dt -= mins*60
+          secs  = dt
+          secs = secs.to_i if secs > 25
+          if hours > 0
+            f.print hours.to_i," hours "
+          end
+          if mins > 0
+            f.print mins.to_i," minutes "
+          end
+          f.print secs," seconds\n" 
+        end
+    end
+  end
+  
 end  # module Genfrag
 
 Genfrag.require_all_libs_relative_to(__FILE__)

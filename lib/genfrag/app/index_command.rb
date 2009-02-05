@@ -13,11 +13,13 @@ class IndexCommand < Command
 
     validate_options(options)
 
-    go = begin
+    if options[:tracktime]
+      Genfrag.tracktime {
+        run(options, @input_filenames, true)
+      }
+    else
       run(options, @input_filenames, true)
     end
-    
-    options[:tracktime] ? TimeTracker.tracktime {go} : go
 
   end
 
@@ -29,12 +31,18 @@ class IndexCommand < Command
 
     opts.separator ''
     opts.separator "  Create a database of sequence fragments that match the last 5' fragment"
-    opts.separator "  cut by two restricting enzymes RE3 and RE5. FIXME"
+    opts.separator "  cut by two restricting enzymes RE3 and RE5."
+    opts.separator "  The Fasta file defined by the --fasta option is taken as input."
+    opts.separator "  Two files are created for the search function - a lookup file, and"
+    opts.separator "  the contents of the Fasta file rewritten in a special format. You can"
+    opts.separator "  specify the name of the lookup file with the --lookup option."
 
     opts.separator ''
     opts.on(*std_opts[:verbose])
     opts.on(*std_opts[:quiet])
     opts.on(*std_opts[:tracktime])
+    opts.on(*std_opts[:indir])
+    opts.on(*std_opts[:outdir])
     opts.on(*std_opts[:re5])
     opts.on(*std_opts[:re3])
     opts.on(*std_opts[:sqlite])
@@ -46,6 +54,7 @@ class IndexCommand < Command
     opts.on( '-h', '--help', 'show this message' ) { @out.puts opts; exit 1 }
     opts.separator '  Examples:'
     opts.separator '    genfrag index -f example.fasta --re5 BstYI --re3 MseI'
+    opts.separator '    genfrag index --out /tmp --in . -f example.fasta --re5 BstYI --re3 MseI'
     opts
   end
   
@@ -59,45 +68,6 @@ class IndexCommand < Command
 
   # parse the command line arguments
     opts.parse! args
-    
-
-=begin    
-
-    if options[:filefasta] == nil
-      @out.puts "must supply fasta filename"
-      @out.puts opts
-      exit 1
-    end
-
-    if options[:re5] == nil
-      @out.puts "re5 not supplied"
-      @out.puts opts
-      exit 1
-    end
-    
-    if options[:re3] == nil
-      @out.puts "re3 not supplied"
-      @out.puts opts
-      exit 1
-    end
-    
-    begin
-      Bio::RestrictionEnzyme::DoubleStranded.new(options[:re3])
-    rescue
-      @out.puts "re3 is not an enzyme name"
-      @out.puts opts
-      exit 1
-    end
-    
-    begin
-      Bio::RestrictionEnzyme::DoubleStranded.new(options[:re5])
-    rescue
-      @out.puts "re5 is not an enzyme name"
-      @out.puts opts
-      exit 1
-    end
-=end
-
   end
 
   def validate_options(o)
@@ -146,7 +116,7 @@ class IndexCommand < Command
 # a flat file index is created (extension .tdf) which is unique for the input file combination. 
 # This file is used by the Search routine later.
 #
-  def run(ops=OpenStruct.new, input_filenames=[], cli=false)
+  def run(ops=@ops, input_filenames=[], cli=false)
     if ops.kind_of? OpenStruct
       @ops = ops.dup
     elsif ops.kind_of? Hash
@@ -154,6 +124,7 @@ class IndexCommand < Command
     else
       raise ArgumentError
     end
+    
   # Set defaults
     @ops.verbose    ||= false
     @ops.quiet      ||= false
@@ -162,7 +133,9 @@ class IndexCommand < Command
     @ops.filefasta  ||= nil
     @ops.re5        ||= nil
     @ops.re3        ||= nil
-    
+    @ops.indir      ||= '.'
+    @ops.outdir     ||= '.'
+
     input_filenames = input_filenames.empty? ? [@ops.filefasta] : input_filenames
     @sizes = {}
     db_normalized_fasta = nil
@@ -172,7 +145,7 @@ class IndexCommand < Command
     @re5_ds, @re3_ds = [@ops.re5, @ops.re3].map {|x| Bio::RestrictionEnzyme::DoubleStranded.new(x)}
 
     if @ops.sqlite
-      db_normalized_fasta = SQLite3::Database.new( name_normalized_fasta(input_filenames) + '.db' )
+      db_normalized_fasta = SQLite3::Database.new( File.join(@ops.outdir, name_normalized_fasta(input_filenames) + '.db') )
       sql = <<-SQL
         drop table if exists db_normalized_fasta;
         create table db_normalized_fasta (
@@ -183,7 +156,7 @@ class IndexCommand < Command
         create unique index db_normalized_fasta_idx on db_normalized_fasta(id);
       SQL
       db_normalized_fasta.execute_batch( sql )
-      db_freq_lookup = SQLite3::Database.new( name_freq_lookup(input_filenames) + '.db' )
+      db_freq_lookup = SQLite3::Database.new( File.join(@ops.outdir, name_freq_lookup(input_filenames) + '.db') )
       sql = <<-SQL
         drop table if exists db_freq_lookup;
         create table db_freq_lookup (
@@ -195,13 +168,13 @@ class IndexCommand < Command
       SQL
       db_freq_lookup.execute_batch( sql )
     else
-      f_normalized_fasta = File.new(name_normalized_fasta(input_filenames) + '.tdf', 'w')
+      f_normalized_fasta = File.new(File.join(@ops.outdir,name_normalized_fasta(input_filenames) + '.tdf'), 'w')
       f_normalized_fasta.puts %w(id Definitions Sequence).join("\t")
-      f_freq_lookup = File.new( name_freq_lookup(input_filenames) + '.tdf', 'w')
+      f_freq_lookup = File.new( File.join(@ops.outdir,name_freq_lookup(input_filenames) + '.tdf'), 'w')
       f_freq_lookup.puts %w(id Size Positions).join("\t")
     end
 
-    cli_p(p, template('out'))
+    cli_p(cli, template('out'))
 
   # unit test with aasi, aari, and ppii
     re5_regexp, re3_regexp = [@ops.re5, @ops.re3].map {|x| Bio::Sequence::NA.new( Bio::RestrictionEnzyme::DoubleStranded.new(x).aligned_strands.primary ).to_re }
@@ -209,15 +182,19 @@ class IndexCommand < Command
     entries = {}
   # Account for exact duplicate sequences
     input_filenames.each do |input_filename|
-      Bio::FlatFile.auto(input_filename).each_entry do |e|
+      Bio::FlatFile.auto(File.join(@ops.indir, input_filename)).each_entry do |e|
         e.definition.tr!("\t",'')
-        if entries[e.seq]
-          entries[e.seq] << e.definition
+        s = e.seq.to_s.downcase
+        if entries[s]
+          entries[s] << e.definition
         else
-          entries[e.seq] = [e.definition]
+          entries[s] = [e.definition]
         end
       end
     end
+    
+    a_re = /(.*)(#{re5_regexp})/
+    b_re = /(.*?)(#{re3_regexp})/
     
     normalized_fasta_id=0
     entries.each do |seq, @definitions|
@@ -228,24 +205,27 @@ class IndexCommand < Command
         f_normalized_fasta.puts [normalized_fasta_id,CSV.generate_line(@definitions),seq].join("\t")
       end
       
-      m1 = /(.*)(#{re5_regexp})/.match( seq.to_s.downcase )
+    # NOTE the index command is slow because of the match functions, compare with ruby 1.9
+      m1 = a_re.match(seq)
       if m1
       # Find the fragment 'frag1' cut most right in seq with re5_regexp
         frag1 = $2 + m1.post_match          
   
         position = $1.size
   
-        m2 = /(.*?)(#{re3_regexp})/.match( frag1 )
+        m2 = b_re.match( frag1 )
   
       # Now cut frag1 with re3_regexp resulting in frag2
         if m2
           @frag2 = $1 + $2
-          p template('verbose_frag') if @ops.verbose
+          cli_p(cli,template('verbose_frag')) if @ops.verbose
           @sizes[@frag2.size] ||= []
           @sizes[@frag2.size] << [position, normalized_fasta_id]
         end
       end
+
     end
+
 
     i=0
     @sizes.each do |size,info|
@@ -262,8 +242,11 @@ class IndexCommand < Command
     else
       cli_p(cli, template('end_simple'))
     end
-    f_normalized_fasta.close
-    f_freq_lookup.close
+    
+    if !@ops.sqlite
+      f_normalized_fasta.close
+      f_freq_lookup.close
+    end
   end
   
 #
