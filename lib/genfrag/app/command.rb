@@ -31,13 +31,20 @@ class Command
 
 # Create a unique filename for the frequency file out of a combination of filenames
 #
-  def name_freq_lookup(input_filenames=[])
-    if @ops.filelookup
+  def name_freq_lookup(input_filenames=[],filefasta=nil,filelookup=nil,re5=nil,re3=nil)
+    if filelookup
       # FIXME used to be gsub! - make sure it still works in code
-      return @ops.filelookup.gsub(/\.(db|tdf)$/, '')
+      return filelookup.gsub(/\.(db|tdf)$/, '')
     elsif !input_filenames.empty?
-      if @ops.re5 and @ops.re3
-        [input_filenames.sort,@ops.re5.downcase,@ops.re3.downcase,'index'].join('_').gsub(/\//,'x')
+      if re5 and re3
+        [input_filenames.sort,re5.downcase,re3.downcase,'index'].join('_').gsub(/\//,'x')
+      else
+        raise "re5 or re3 is undefined"
+      end
+    elsif filefasta
+    # construct default name
+      if re5 and re3
+        [filefasta,re5.downcase,re3.downcase,'index'].join('_').gsub(/\//,'x')
       else
         raise "re5 or re3 is undefined"
       end
@@ -48,10 +55,10 @@ class Command
 
 # Create a unique filename out of a combination of filenames
 #
-  def name_normalized_fasta(input_filenames=[])
-    if @ops.filefasta
+  def name_normalized_fasta(input_filenames=[],filefasta=nil)
+    if filefasta
       # FIXME used to be gsub! - make sure it still works in code
-      return @ops.filefasta.gsub(/\.(db|tdf)$/, '')
+      return filefasta.gsub(/\.(db|tdf)$/, '')
     elsif !input_filenames.empty?
       return [input_filenames.sort, 'normalized'].join('_').gsub(/\//,'x')
     else

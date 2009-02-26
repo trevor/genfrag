@@ -12,7 +12,7 @@ describe Genfrag::App::SearchCommand do
     @input_dir = File.join(GENFRAG_SPEC_DATA_DIR, 'index_command', 'in')
     @frozen_output_dir = File.join(GENFRAG_SPEC_DATA_DIR, 'index_command', 'out')
     @working_output_dir = File.join(GENFRAG_SPEC_TMP_DIR, %w[index_command])
-    FileUtils.mkdir(@working_output_dir) unless File.directory? @working_output_dir
+    FileUtils.mkdir_p(@working_output_dir) unless File.directory? @working_output_dir
   end
   
   before :each do

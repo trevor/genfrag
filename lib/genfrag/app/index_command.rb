@@ -145,7 +145,7 @@ class IndexCommand < Command
     @re5_ds, @re3_ds = [@ops.re5, @ops.re3].map {|x| Bio::RestrictionEnzyme::DoubleStranded.new(x)}
 
     if @ops.sqlite
-      db_normalized_fasta = SQLite3::Database.new( File.join(@ops.outdir, name_normalized_fasta(input_filenames) + '.db') )
+      db_normalized_fasta = SQLite3::Database.new( File.join(@ops.outdir, name_normalized_fasta(input_filenames,@ops.filefasta) + '.db') )
       sql = <<-SQL
         drop table if exists db_normalized_fasta;
         create table db_normalized_fasta (
@@ -156,7 +156,7 @@ class IndexCommand < Command
         create unique index db_normalized_fasta_idx on db_normalized_fasta(id);
       SQL
       db_normalized_fasta.execute_batch( sql )
-      db_freq_lookup = SQLite3::Database.new( File.join(@ops.outdir, name_freq_lookup(input_filenames) + '.db') )
+      db_freq_lookup = SQLite3::Database.new( File.join(@ops.outdir, name_freq_lookup(input_filenames,@ops.filefasta,@ops.filelookup,@ops.re5,@ops.re3) + '.db') )
       sql = <<-SQL
         drop table if exists db_freq_lookup;
         create table db_freq_lookup (
@@ -168,9 +168,9 @@ class IndexCommand < Command
       SQL
       db_freq_lookup.execute_batch( sql )
     else
-      f_normalized_fasta = File.new(File.join(@ops.outdir,name_normalized_fasta(input_filenames) + '.tdf'), 'w')
+      f_normalized_fasta = File.new(File.join(@ops.outdir,name_normalized_fasta(input_filenames,@ops.filefasta) + '.tdf'), 'w')
       f_normalized_fasta.puts %w(id Definitions Sequence).join("\t")
-      f_freq_lookup = File.new( File.join(@ops.outdir,name_freq_lookup(input_filenames) + '.tdf'), 'w')
+      f_freq_lookup = File.new( File.join(@ops.outdir,name_freq_lookup(input_filenames,@ops.filefasta,@ops.filelookup,@ops.re5,@ops.re3) + '.tdf'), 'w')
       f_freq_lookup.puts %w(id Size Positions).join("\t")
     end
 

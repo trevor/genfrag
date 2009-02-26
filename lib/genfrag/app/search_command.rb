@@ -13,19 +13,19 @@ class SearchCommand < Command
     
     validate_options(options)
     
-    if @ops.sqlite
-      processed_fasta_file  = GenfragSearch::ProcessFile.process_db_fasta_file( SQLite3::Database.new( name_normalized_fasta(input_filenames) + '.db' ) )
-      processed_freq_lookup = GenfragSearch::ProcessFile.process_db_freq_lookup( SQLite3::Database.new( name_freq_lookup(input_filenames) + '.db' ) )
+    if options[:sqlite]
+      processed_fasta_file  = SearchCommand::ProcessFile.process_db_fasta_file( SQLite3::Database.new( name_normalized_fasta(input_filenames,options[:filefasta]) + '.db' ) )
+      processed_freq_lookup = SearchCommand::ProcessFile.process_db_freq_lookup( SQLite3::Database.new( name_freq_lookup(input_filenames,options[:filefasta],options[:filelookup],options[:re5],options[:re3]) + '.db' ) )
     else
-      processed_fasta_file  = GenfragSearch::ProcessFile.process_tdf_fasta_file(  IO.readlines( name_normalized_fasta(input_filenames) + '.tdf' ) )
-      processed_freq_lookup = GenfragSearch::ProcessFile.process_tdf_freq_lookup( IO.readlines( name_freq_lookup(input_filenames) + '.tdf' ) )
+      processed_fasta_file  = SearchCommand::ProcessFile.process_tdf_fasta_file(  IO.readlines( name_normalized_fasta(input_filenames,options[:filefasta]) + '.tdf' ) )
+      processed_freq_lookup = SearchCommand::ProcessFile.process_tdf_freq_lookup( IO.readlines( name_freq_lookup(input_filenames,options[:filefasta],options[:filelookup],options[:re5],options[:re3]) + '.tdf' ) )
     end
     
-    if @ops.fileadapters
-      processed_adapters = GenfragSearch::ProcessFile.process_tdf_adapters( IO.readlines( name_adapters() + '.tdf' ), @ops.named_adapter5, @ops.named_adapter3 )
+      if options[:fileadapters]
+      processed_adapters = SearchCommand::ProcessFile.process_tdf_adapters( IO.readlines( name_adapters() + '.tdf' ), options[:named_adapter5], options[:named_adapter3] )
     end
     
-    run(options, processed_fasta_file, processed_freq_lookup, processed_adapters)
+    run(options, processed_fasta_file, processed_freq_lookup, processed_adapters, true)
   end
 
   def opt_parser
@@ -41,25 +41,12 @@ class SearchCommand < Command
     opts.separator "  fragments, as is used in some protocols."
 
     opts.separator ''
-    opts.on(*std_opts[:verbose])
-    opts.on(*std_opts[:quiet])
-    opts.on(*std_opts[:tracktime])
-    opts.on(*std_opts[:indir])
-    opts.on(*std_opts[:outdir])
-    opts.on(*std_opts[:sqlite])
-    opts.on(*std_opts[:re5])
-    opts.on(*std_opts[:re3])
-    opts.on(*std_opts[:filelookup])
-    opts.on(*std_opts[:filefasta])
-    opts.on(*std_opts[:fileadapters])
-    opts.on(*std_opts[:adapter5_sequence])
-    opts.on(*std_opts[:adapter3_sequence])
-    opts.on(*std_opts[:adapter5_size])
-    opts.on(*std_opts[:adapter3_size])
-    opts.on(*std_opts[:named_adapter5])
-    opts.on(*std_opts[:named_adapter3])
-    opts.on(*std_opts[:adapter5])
-    opts.on(*std_opts[:adapter3])
+    ary = [:verbose, :quiet, :tracktime, :indir, :outdir, :sqlite, :re5, :re3,
+      :filelookup, :filefasta, :fileadapters, :adapter5_sequence, :adapter3_sequence,
+      :adapter5_size, :adapter3_size, :named_adapter5, :named_adapter3,
+      :adapter5, :adapter3
+    ]
+    ary.each { |a| opts.on(*std_opts[a]) }
         
     opts.separator ''
     opts.separator '  Common Options:'
@@ -138,22 +125,43 @@ class SearchCommand < Command
       raise ArgumentError
     end
     
+    puts @ops.inspect
+    
   # Set defaults
     @ops.verbose        ||= false
     @ops.quiet          ||= false
-    @ops.dirty_mode     ||= false
     @ops.sqlite         ||= false
     @ops.re5            ||= nil
     @ops.re3            ||= nil
     @ops.size           ||= [0]
     @ops.adapter5_size  ||= nil
     @ops.adapter3_size  ||= nil
+    @ops.adapter5       ||= nil
+    @ops.adapter3       ||= nil
     
     @sizes = processed_freq_lookup
     @sequences = processed_fasta_file
     @adapters = {}
     @re5_ds, @re3_ds = [@ops.re5, @ops.re3].map {|x| Bio::RestrictionEnzyme::DoubleStranded.new(x)}
-    cli_p(cli,template('exact'))
+    if @ops.verbose
+      cli_p(cli, <<-END
+    RE5: @ops.re5
+
+    @re5_ds.aligned_strands_with_cuts.primary
+
+    @re5_ds.aligned_strands_with_cuts.complement
+
+    RE3: @ops.re3
+
+    @re3_ds.aligned_strands_with_cuts.primary
+    
+    @re3_ds.aligned_strands_with_cuts.complement
+
+  Adapter5: #{@ops.adapter5}
+  Adapter3: #{@ops.adapter3}
+END
+)
+    end
 
     if @ops.named_adapter5 and @ops.adapter5
       raise ArgumentError, "Cannot have both 'adapter5' and 'named_adapter5'"
@@ -222,13 +230,41 @@ class SearchCommand < Command
       end
     end
   
-  # FIXME
     if results.size == 0
-      print "No results" if !@ops.quiet  # Trevor: you probably want this different
+      puts "Nothing found" if @ops.verbose
     end
+
     results.each do |r|
       @r = r
-      cli_p(cli,template('results_exact'))
+      if @ops.verbose
+        cli_p(cli, <<-END
+---
+#{@sequences[@r[:entry][:fasta_id]][:definitions].join("\n")}
+
+Original sequence (#{@r[:seq].size}bp):
+
+ #{@r[:seq]}
+
+
+Fragment (#{@r[:primary_frag].size}bp):
+  5' - #{@r[:primary_frag]} - 3'
+  3' - #{@r[:complement_frag]} - 5'
+
+Fragment - after adapters (#{@r[:primary_frag_with_adapters].size}bp):
+  5' - #{@r[:primary_frag_with_adapters]} - 3'
+  3' - #{@r[:complement_frag_with_adapters]} - 5'
+END
+)
+      elsif !@ops.quiet
+        cli_p(cli, <<-END
+---
+@sequences[@r[:entry][:fasta_id]][:definitions].join("\n")
+
+  5' - @r[:primary_frag_with_adapters] - 3'
+  3' - @r[:complement_frag_with_adapters] - 5'
+END
+)
+      end
     end
 
     return results
@@ -267,10 +303,6 @@ class SearchCommand < Command
     end
     l.call(5)
     l.call(3)
-  end
-  
-  def template(x)
-    ERB.new( IO.read(File.join([File.dirname(__FILE__)] + %w(search_command template) + ["#{x}.erb"])), nil, '>' ).result(binding)
   end
 
 end  # class SearchCommand
