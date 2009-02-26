@@ -67,42 +67,31 @@ class IndexCommand < Command
 
   def validate_options(o)
     if o[:filefasta] == nil
-      @out.puts
-      @err.puts "missing option: must supply fasta filename"
-      @out.puts
-      @out.puts opt_parser
+      clierr_p "missing option: must supply fasta filename"
       exit 1
     end
     
     if o[:re5] == nil
-      @out.puts
-      @err.puts "missing option: re5"
-      @out.puts
-      @out.puts opt_parser
+      clierr_p "missing option: re5"
       exit 1
     end
     
     if o[:re3] == nil
-      @out.puts
-      @err.puts "missing option: re3"
-      @out.puts
-      @out.puts opt_parser
+      clierr_p "missing option: re3"
       exit 1
     end
     
     begin
       Bio::RestrictionEnzyme::DoubleStranded.new(o[:re3])
     rescue
-      @err.puts "re3 is not an enzyme name"
-      @out.puts opt_parser
+      clierr_p "re3 is not an enzyme name"
       exit 1
     end
     
     begin
       Bio::RestrictionEnzyme::DoubleStranded.new(o[:re5])
     rescue
-      @err.puts "re5 is not an enzyme name"
-      @out.puts opt_parser
+      clierr_p "re5 is not an enzyme name"
       exit 1
     end
   end

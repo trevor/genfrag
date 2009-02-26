@@ -76,42 +76,31 @@ class SearchCommand < Command
   
   def validate_options(o)
     if o[:filefasta] == nil
-      @out.puts
-      @err.puts "missing option: must supply fasta filename"
-      @out.puts
-      @out.puts opt_parser
+      clierr_p "missing option: must supply fasta filename"
       exit 1
     end
     
     if o[:re5] == nil
-      @out.puts
-      @err.puts "missing option: re5"
-      @out.puts
-      @out.puts opt_parser
+      clierr_p "missing option: re5"
       exit 1
     end
     
     if o[:re3] == nil
-      @out.puts
-      @err.puts "missing option: re3"
-      @out.puts
-      @out.puts opt_parser
+      clierr_p "missing option: re3"
       exit 1
     end
     
     begin
       Bio::RestrictionEnzyme::DoubleStranded.new(o[:re3])
     rescue
-      @err.puts "re3 is not an enzyme name"
-      @out.puts opt_parser
+      clierr_p "re3 is not an enzyme name"
       exit 1
     end
     
     begin
       Bio::RestrictionEnzyme::DoubleStranded.new(o[:re5])
     rescue
-      @err.puts "re5 is not an enzyme name"
-      @out.puts opt_parser
+      clierr_p "re5 is not an enzyme name"
       exit 1
     end
   end
@@ -213,6 +202,7 @@ END
         p = primary_frag.dup
         c = complement_frag.dup
         
+      # note the next two if-statements at this lever chain together with 'p' and 'c'
         if @adapters[:adapter5_specificity]
           p, c = matches_adapter(5, p, c, raw_frag, @trim)
           next if !p  # next if returned false -- no match
@@ -231,7 +221,7 @@ END
     end
   
     if results.size == 0
-      puts "Nothing found" if @ops.verbose
+      cli_p(cli,"Nothing found") if @ops.verbose
     end
 
     results.each do |r|

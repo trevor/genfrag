@@ -80,6 +80,15 @@ class Command
     @out.puts str
   end
 
+# Print an error from the command-line options
+#
+  def clierr_p(str)
+    @out.puts
+    @err.puts "Error: #{str}"
+    @out.puts
+    @out.puts opt_parser
+  end
+
 # Define the command-line option available
 #
   def standard_options
