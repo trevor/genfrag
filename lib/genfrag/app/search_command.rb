@@ -243,7 +243,7 @@ END
 
 Original sequence (#{@r[:seq].size}bp):
 
- #{@r[:seq]}
+#{@r[:seq]}
 
 
 Fragment (#{@r[:primary_frag].size}bp):
@@ -255,7 +255,7 @@ Fragment - after adapters (#{@r[:primary_frag_with_adapters].size}bp):
   3' - #{@r[:complement_frag_with_adapters]} - 5'
 END
 )
-      elsif !@ops.quiet
+      else
         cli_p(cli, <<-END
 ---
 @sequences[@r[:entry][:fasta_id]][:definitions].join("\n")

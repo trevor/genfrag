@@ -38,16 +38,11 @@ class IndexCommand < Command
     opts.separator "  specify the name of the lookup file with the --lookup option."
 
     opts.separator ''
-    opts.on(*std_opts[:verbose])
-    opts.on(*std_opts[:quiet])
-    opts.on(*std_opts[:tracktime])
-    opts.on(*std_opts[:indir])
-    opts.on(*std_opts[:outdir])
-    opts.on(*std_opts[:re5])
-    opts.on(*std_opts[:re3])
-    opts.on(*std_opts[:sqlite])
-    opts.on(*std_opts[:filelookup])
-    opts.on(*std_opts[:filefasta])
+    
+    ary = [:verbose, :quiet, :tracktime, :indir, :outdir, :sqlite, :re5, :re3,
+      :filelookup, :filefasta
+    ]
+    ary.each { |a| opts.on(*std_opts[a]) }
 
     opts.separator ''
     opts.separator '  Common Options:'
@@ -174,7 +169,18 @@ class IndexCommand < Command
       f_freq_lookup.puts %w(id Size Positions).join("\t")
     end
 
-    cli_p(cli, template('out'))
+    if @ops.verbose
+      cli_p(cli, <<-END
+RE5: #{@ops.re5}
+#{@re5_ds.aligned_strands_with_cuts.primary}
+#{@re5_ds.aligned_strands_with_cuts.complement}
+
+RE3: #{@ops.re3}
+#{@re3_ds.aligned_strands_with_cuts.primary}
+#{@re3_ds.aligned_strands_with_cuts.complement}
+END
+)
+    end
 
   # unit test with aasi, aari, and ppii
     re5_regexp, re3_regexp = [@ops.re5, @ops.re3].map {|x| Bio::Sequence::NA.new( Bio::RestrictionEnzyme::DoubleStranded.new(x).aligned_strands.primary ).to_re }
@@ -218,7 +224,14 @@ class IndexCommand < Command
       # Now cut frag1 with re3_regexp resulting in frag2
         if m2
           @frag2 = $1 + $2
-          cli_p(cli,template('verbose_frag')) if @ops.verbose
+          if @ops.verbose
+            cli_p(cli, <<-END
+---
+#{@definitions.join("\n")}
+#{@frag2}
+END
+)
+          end
           @sizes[@frag2.size] ||= []
           @sizes[@frag2.size] << [position, normalized_fasta_id]
         end
@@ -238,9 +251,9 @@ class IndexCommand < Command
     end
     
     if @ops.verbose
-      @sizes.each { |@entry| cli_p(cli, template('end_verbose_entry')) }
+      @sizes.each { |@entry| cli_p(cli, @entry.inspect) }
     else
-      cli_p(cli, template('end_simple'))
+      cli_p(cli, "Cut sites found: #{@sizes.values.flatten.size / 2}")
     end
     
     if !@ops.sqlite
@@ -249,11 +262,7 @@ class IndexCommand < Command
     end
   end
   
-#
-#
-  def template(x)
-    ERB.new( IO.read(File.join([File.dirname(__FILE__)] + %w(index_command template) + ["#{x}.erb"])) ).result(binding)
-  end
+
 end  # class IndexCommand
 end  # class App
 end  # module Genfrag

@@ -14,7 +14,6 @@ require 'fileutils'
 require 'optparse'
 require 'ostruct'
 require 'bio'
-require 'erb'
 require 'csv'
 
 module Genfrag
