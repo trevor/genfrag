@@ -32,6 +32,7 @@ class Command
 # Create a unique filename for the frequency file out of a combination of filenames
 #
   def name_freq_lookup(input_filenames=[],filefasta=nil,filelookup=nil,re5=nil,re3=nil)
+    input_filenames = [] if input_filenames.nil?
     if filelookup
       # FIXME used to be gsub! - make sure it still works in code
       return filelookup.gsub(/\.(db|tdf)$/, '')
@@ -44,7 +45,7 @@ class Command
     elsif filefasta
     # construct default name
       if re5 and re3
-        [filefasta,re5.downcase,re3.downcase,'index'].join('_').gsub(/\//,'x')
+        [name_normalized_fasta(nil,filefasta),re5.downcase,re3.downcase,'index'].join('_').gsub(/\//,'x')
       else
         raise "re5 or re3 is undefined"
       end
@@ -68,9 +69,9 @@ class Command
 
 # Return the name of the adapters file without its extension
 #
-  def name_adapters
-    return nil if !@ops.fileadapters
-    return @ops.fileadapters.gsub(/\.(db|tdf)$/, '')
+  def name_adapters(fileadapters=nil)
+    return nil if !fileadapters
+    return fileadapters.gsub(/\.(db|tdf)$/, '')
   end
 
 # Print running output when used in command-line mode
