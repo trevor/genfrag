@@ -164,9 +164,9 @@ END
       adapter_setup_2
     end
     
-  # ---- translated adapter 3' if given in reverse orientation - e.g. _tt is 
-  #      translated to aa (reversed) and _tct returns the primary strand
-  #      ending in specific 'tct'
+  # translated adapter 3' if given in reverse orientation - e.g. _tt is 
+  # translated to aa (reversed) and _tct returns the primary strand
+  # ending in specific 'tct'
     if @adapters[:adapter3_specificity] =~ /^_/
       seq3 = Bio::Sequence::NA.new(@adapters[:adapter3_specificity][1..-1]).downcase
       @adapters[:adapter3_specificity] = seq3.complement.to_s

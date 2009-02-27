@@ -4,70 +4,71 @@ class App
 
 class SearchCommand < Command
 
-  # Keep track of extraneous nucleotides that should be removed from the final fragment
-  #
-  # Example BstYI used as RE5
-  # BstYI -
-  #   5' - r^g a t c y - 3'
-  #   3' - y c t a g^r - 5'
-  #
-  #   re5_ds.cut_locations.primary              # => [0]
-  #   re5_ds.cut_locations.complement           # => [4]
-  #   re5_ds.aligned_strands.primary.size       # => 6
-  #
-  #   # number of nucleotides to trim from the left side on the primary strand
-  #   re5_ds.cut_locations.primary.max + 1      # => 1
-  #
-  #   # number of nucleotides to trim from the left side on the complement strand
-  #   re5_ds.cut_locations.complement.max + 1   # => 5
-  #
-  #
-  # Example BstYI used as RE3
-  # BstYI -
-  #   5' - r^g a t c y - 3'
-  #   3' - y c t a g^r - 5'
-  #
-  #   re3_ds.cut_locations.primary              # => [0]
-  #   re3_ds.cut_locations.complement           # => [4]
-  #   re3_ds.aligned_strands.primary.size       # => 6
-  #
-  #   # number of nucleotides to trim from the right side on the primary strand
-  #   re3_ds.aligned_strands.primary.size - (re3_ds.cut_locations.primary.min + 1)      # => 5
-  #
-  #   # number of nucleotides to trim from the right side on the complement strand
-  #   re3_ds.aligned_strands.primary.size - (re3_ds.cut_locations.complement.min + 1)   # => 1
-  #
-  #
-  # Example PpiI used as RE5
-  # PpiI -
-  #   5' - n n n n n n^n n n n n n n g a a c n n n n n c t c n n n n n n n n n n n n n^n - 3'
-  #   3' - n^n n n n n n n n n n n n c t t g n n n n n g a g n n n n n n n n^n n n n n n - 5'
-  #
-  #   re5_ds.cut_locations.primary              # => [5, 37]
-  #   re5_ds.cut_locations.complement           # => [0, 32]
-  #   re5_ds.aligned_strands.primary.size       # => 39
-  #
-  #   # number of nucleotides to trim from the left side on the primary strand
-  #   re5_ds.cut_locations.primary.max + 1      # => 38
-  #
-  #   # number of nucleotides to trim from the left side on the complement strand
-  #   re5_ds.cut_locations.complement.max + 1   # => 33
-  #
-  #
-  # Example PpiI used as RE3
-  # PpiI -
-  #   5' - n n n n n n^n n n n n n n g a a c n n n n n c t c n n n n n n n n n n n n n^n - 3'
-  #   3' - n^n n n n n n n n n n n n c t t g n n n n n g a g n n n n n n n n^n n n n n n - 5'
-  #
-  #   re3_ds.cut_locations.primary              # => [5, 37]
-  #   re3_ds.cut_locations.complement           # => [0, 32]
-  #   re3_ds.aligned_strands.primary.size       # => 39
-  #
-  #   # number of nucleotides to trim from the right side on the primary strand
-  #   re3_ds.aligned_strands.primary.size - (re3_ds.cut_locations.primary.min + 1)      # => 33
-  #
-  #   # number of nucleotides to trim from the right side on the complement strand
-  #   re3_ds.aligned_strands.primary.size - (re3_ds.cut_locations.complement.min + 1)   # => 38
+# Keep track of extraneous nucleotides that should be removed from the final fragment
+#
+# Example BstYI used as RE5
+# BstYI -
+#   5' - r^g a t c y - 3'
+#   3' - y c t a g^r - 5'
+#
+#   re5_ds.cut_locations.primary              # => [0]
+#   re5_ds.cut_locations.complement           # => [4]
+#   re5_ds.aligned_strands.primary.size       # => 6
+#
+#   # number of nucleotides to trim from the left side on the primary strand
+#   re5_ds.cut_locations.primary.max + 1      # => 1
+#
+#   # number of nucleotides to trim from the left side on the complement strand
+#   re5_ds.cut_locations.complement.max + 1   # => 5
+#
+#
+# Example BstYI used as RE3
+# BstYI -
+#   5' - r^g a t c y - 3'
+#   3' - y c t a g^r - 5'
+#
+#   re3_ds.cut_locations.primary              # => [0]
+#   re3_ds.cut_locations.complement           # => [4]
+#   re3_ds.aligned_strands.primary.size       # => 6
+#
+#   # number of nucleotides to trim from the right side on the primary strand
+#   re3_ds.aligned_strands.primary.size - (re3_ds.cut_locations.primary.min + 1)      # => 5
+#
+#   # number of nucleotides to trim from the right side on the complement strand
+#   re3_ds.aligned_strands.primary.size - (re3_ds.cut_locations.complement.min + 1)   # => 1
+#
+#
+# Example PpiI used as RE5
+# PpiI -
+#   5' - n n n n n n^n n n n n n n g a a c n n n n n c t c n n n n n n n n n n n n n^n - 3'
+#   3' - n^n n n n n n n n n n n n c t t g n n n n n g a g n n n n n n n n^n n n n n n - 5'
+#
+#   re5_ds.cut_locations.primary              # => [5, 37]
+#   re5_ds.cut_locations.complement           # => [0, 32]
+#   re5_ds.aligned_strands.primary.size       # => 39
+#
+#   # number of nucleotides to trim from the left side on the primary strand
+#   re5_ds.cut_locations.primary.max + 1      # => 38
+#
+#   # number of nucleotides to trim from the left side on the complement strand
+#   re5_ds.cut_locations.complement.max + 1   # => 33
+#
+#
+# Example PpiI used as RE3
+# PpiI -
+#   5' - n n n n n n^n n n n n n n g a a c n n n n n c t c n n n n n n n n n n n n n^n - 3'
+#   3' - n^n n n n n n n n n n n n c t t g n n n n n g a g n n n n n n n n^n n n n n n - 5'
+#
+#   re3_ds.cut_locations.primary              # => [5, 37]
+#   re3_ds.cut_locations.complement           # => [0, 32]
+#   re3_ds.aligned_strands.primary.size       # => 39
+#
+#   # number of nucleotides to trim from the right side on the primary strand
+#   re3_ds.aligned_strands.primary.size - (re3_ds.cut_locations.primary.min + 1)      # => 33
+#
+#   # number of nucleotides to trim from the right side on the complement strand
+#   re3_ds.aligned_strands.primary.size - (re3_ds.cut_locations.complement.min + 1)   # => 38
+#
   def calculate_trim_for_nucleotides(re5_ds, re3_ds)
     trim = {}
     trim[:from_left_primary]     = re5_ds.cut_locations.primary.max + 1
@@ -77,7 +78,8 @@ class SearchCommand < Command
     return trim
   end
 
-  # Calculate left and right trims
+# Calculate left and right trims
+#
   def calculate_left_and_right_trims(trim)
     left = {}
     # Should we "dot out" (nucleotide padding) from the primary strand? If no, then we assume the complement needs padding.
@@ -91,8 +93,9 @@ class SearchCommand < Command
     return [left,right]
   end
 
-  # Do the trimming
-  def trim_sequences(primary_frag, complement_frag, left, right, trim)  
+# Do the trimming
+#
+  def trim_sequences(primary_frag, complement_frag, left, right, trim)
     if left[:dot_out_from_primary]
       primary_frag = "." * trim[:from_left_primary] + primary_frag[trim[:from_left_primary]..-1]
     else
