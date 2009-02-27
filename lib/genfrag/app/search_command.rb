@@ -13,16 +13,17 @@ class SearchCommand < Command
     
     validate_options(options)
     
+    
     if options[:sqlite]
-      processed_fasta_file  = SearchCommand::ProcessFile.process_db_fasta_file( SQLite3::Database.new( name_normalized_fasta(input_filenames,options[:filefasta]) + '.db' ) )
-      processed_freq_lookup = SearchCommand::ProcessFile.process_db_freq_lookup( SQLite3::Database.new( name_freq_lookup(input_filenames,options[:filefasta],options[:filelookup],options[:re5],options[:re3]) + '.db' ) )
+      processed_fasta_file  = SearchCommand::ProcessFile.process_db_fasta_file( SQLite3::Database.new( Genfrag.name_normalized_fasta(input_filenames,options[:filefasta]) + '.db' ) )
+      processed_freq_lookup = SearchCommand::ProcessFile.process_db_freq_lookup( SQLite3::Database.new( Genfrag.name_freq_lookup(input_filenames,options[:filefasta],options[:filelookup],options[:re5],options[:re3]) + '.db' ) )
     else
-      processed_fasta_file  = SearchCommand::ProcessFile.process_tdf_fasta_file(  IO.readlines( name_normalized_fasta(input_filenames,options[:filefasta]) + '.tdf' ) )
-      processed_freq_lookup = SearchCommand::ProcessFile.process_tdf_freq_lookup( IO.readlines( name_freq_lookup(input_filenames,options[:filefasta],options[:filelookup],options[:re5],options[:re3]) + '.tdf' ) )
+      processed_fasta_file  = SearchCommand::ProcessFile.process_tdf_fasta_file(  IO.readlines( Genfrag.name_normalized_fasta(input_filenames,options[:filefasta]) + '.tdf' ) )
+      processed_freq_lookup = SearchCommand::ProcessFile.process_tdf_freq_lookup( IO.readlines( Genfrag.name_freq_lookup(input_filenames,options[:filefasta],options[:filelookup],options[:re5],options[:re3]) + '.tdf' ) )
     end
     
       if options[:fileadapters]
-      processed_adapters = SearchCommand::ProcessFile.process_tdf_adapters( IO.readlines( name_adapters(options[:fileadapters]) + '.tdf' ), options[:named_adapter5], options[:named_adapter3] )
+      processed_adapters = SearchCommand::ProcessFile.process_tdf_adapters( IO.readlines( Genfrag.name_adapters(options[:fileadapters]) + '.tdf' ), options[:named_adapter5], options[:named_adapter3] )
     end
     
     run(options, processed_fasta_file, processed_freq_lookup, processed_adapters, true)
@@ -53,6 +54,7 @@ class SearchCommand < Command
     opts.on( '-h', '--help', 'show this message' ) { @out.puts opts; exit }
     
     opts.separator '  Examples:'
+    opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5 tt'
     opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --add 26 --adapter5 ct --adapter3 aa --size 190,215'
     opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5-size 11 --adapter5 tt --adapter3-size 15 --size 168'
     opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5-sequence GACTGCGTAGTGATC --adapter5 tt --adapter3-size 15 --size 168'
@@ -167,6 +169,7 @@ END
     else
       adapter_setup_2
     end
+    
   # ---- translated adapter 3' if given in reverse orientation - e.g. _tt is 
   #      translated to aa (reversed) and _tct returns the primary strand
   #      ending in specific 'tct'
@@ -272,8 +275,8 @@ END
         end
       elsif hsh["adapter#{i}_specificity".to_sym]
         @adapters["adapter#{i}_specificity".to_sym] = hsh["adapter#{i}_specificity".to_sym]
-        @adapters["adapter#{i}_sequence".to_sym] = hsh["adapter#{i}_sequence".to_sym]
-        @adapters["adapter#{i}_size".to_sym] = hsh["adapter#{i}_sequence".to_sym].size + hsh["adapter#{i}_specificity".to_sym].size
+        @adapters["adapter#{i}_sequence".to_sym]    = hsh["adapter#{i}_sequence".to_sym]
+        @adapters["adapter#{i}_size".to_sym]        = hsh["adapter#{i}_sequence".to_sym].size + hsh["adapter#{i}_specificity".to_sym].size
       end
     end
   # set adapter 5' and 3' respectively using above procs
@@ -294,6 +297,7 @@ END
     l.call(5)
     l.call(3)
   end
+  
 
 end  # class SearchCommand
 end  # class App

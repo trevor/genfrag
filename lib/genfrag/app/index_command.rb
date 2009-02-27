@@ -6,6 +6,8 @@ class IndexCommand < Command
 
   attr_reader :sizes
 
+# Run from command-line
+#
   def cli_run( args )
     parse args
 
@@ -21,79 +23,6 @@ class IndexCommand < Command
       run(options, @input_filenames, true)
     end
 
-  end
-
-  def opt_parser
-    std_opts = standard_options
-
-    opts = OptionParser.new
-    opts.banner = 'Usage: genfrag index [options]'
-
-    opts.separator ''
-    opts.separator "  Create a database of sequence fragments that match the last 5' fragment"
-    opts.separator "  cut by two restricting enzymes RE3 and RE5."
-    opts.separator "  The Fasta file defined by the --fasta option is taken as input."
-    opts.separator "  Two files are created for the search function - a lookup file, and"
-    opts.separator "  the contents of the Fasta file rewritten in a special format. You can"
-    opts.separator "  specify the name of the lookup file with the --lookup option."
-
-    opts.separator ''
-    
-    ary = [:verbose, :quiet, :tracktime, :indir, :outdir, :sqlite, :re5, :re3,
-      :filelookup, :filefasta
-    ]
-    ary.each { |a| opts.on(*std_opts[a]) }
-
-    opts.separator ''
-    opts.separator '  Common Options:'
-    opts.on( '-h', '--help', 'show this message' ) { @out.puts opts; exit 1 }
-    opts.separator '  Examples:'
-    opts.separator '    genfrag index -f example.fasta --re5 BstYI --re3 MseI'
-    opts.separator '    genfrag index --out /tmp --in . -f example.fasta --re5 BstYI --re3 MseI'
-    opts
-  end
-  
-  def parse( args )
-    opts = opt_parser
-    
-    if args.empty?
-      @out.puts opts
-      exit 1
-    end
-
-  # parse the command line arguments
-    opts.parse! args
-  end
-
-  def validate_options(o)
-    if o[:filefasta] == nil
-      clierr_p "missing option: must supply fasta filename"
-      exit 1
-    end
-    
-    if o[:re5] == nil
-      clierr_p "missing option: re5"
-      exit 1
-    end
-    
-    if o[:re3] == nil
-      clierr_p "missing option: re3"
-      exit 1
-    end
-    
-    begin
-      Bio::RestrictionEnzyme::DoubleStranded.new(o[:re3])
-    rescue
-      clierr_p "re3 is not an enzyme name"
-      exit 1
-    end
-    
-    begin
-      Bio::RestrictionEnzyme::DoubleStranded.new(o[:re5])
-    rescue
-      clierr_p "re5 is not an enzyme name"
-      exit 1
-    end
   end
 
 # Main class for creating the index - accepts multiple input files. Either an SQLite database or
@@ -120,43 +49,12 @@ class IndexCommand < Command
     @ops.indir      ||= '.'
     @ops.outdir     ||= '.'
 
-    input_filenames = input_filenames.empty? ? [@ops.filefasta] : input_filenames
-    @sizes = {}
-    db_normalized_fasta = nil
-    db_freq_lookup = nil
-    f_normalized_fasta = nil
-    f_freq_lookup = nil
-    @re5_ds, @re3_ds = [@ops.re5, @ops.re3].map {|x| Bio::RestrictionEnzyme::DoubleStranded.new(x)}
 
-    if @ops.sqlite
-      db_normalized_fasta = SQLite3::Database.new( File.join(@ops.outdir, name_normalized_fasta(input_filenames,@ops.filefasta) + '.db') )
-      sql = <<-SQL
-        drop table if exists db_normalized_fasta;
-        create table db_normalized_fasta (
-          id integer,
-          definitions text,
-          sequence text
-        );
-        create unique index db_normalized_fasta_idx on db_normalized_fasta(id);
-      SQL
-      db_normalized_fasta.execute_batch( sql )
-      db_freq_lookup = SQLite3::Database.new( File.join(@ops.outdir, name_freq_lookup(input_filenames,@ops.filefasta,@ops.filelookup,@ops.re5,@ops.re3) + '.db') )
-      sql = <<-SQL
-        drop table if exists db_freq_lookup;
-        create table db_freq_lookup (
-        id integer,
-        size integer,
-        positions text
-        );
-        create unique index db_freq_lookup_idx on db_freq_lookup(id);
-      SQL
-      db_freq_lookup.execute_batch( sql )
-    else
-      f_normalized_fasta = File.new(File.join(@ops.outdir,name_normalized_fasta(input_filenames,@ops.filefasta) + '.tdf'), 'w')
-      f_normalized_fasta.puts %w(id Definitions Sequence).join("\t")
-      f_freq_lookup = File.new( File.join(@ops.outdir,name_freq_lookup(input_filenames,@ops.filefasta,@ops.filelookup,@ops.re5,@ops.re3) + '.tdf'), 'w')
-      f_freq_lookup.puts %w(id Size Positions).join("\t")
-    end
+    @input_filenames = input_filenames.empty? ? [@ops.filefasta] : input_filenames
+    @sizes = {}    
+    db = IndexCommand::DB.new(@ops, @input_filenames)
+    @re5_ds, @re3_ds = [@ops.re5, @ops.re3].map {|x| Bio::RestrictionEnzyme::DoubleStranded.new(x)}
+    db.write_headers    
 
     if @ops.verbose
       cli_p(cli, <<-END
@@ -176,7 +74,7 @@ END
 
     entries = {}
   # Account for exact duplicate sequences
-    input_filenames.each do |input_filename|
+    @input_filenames.each do |input_filename|
       Bio::FlatFile.auto(File.join(@ops.indir, input_filename)).each_entry do |e|
         e.definition.tr!("\t",'')
         s = e.seq.to_s.downcase
@@ -192,13 +90,9 @@ END
     b_re = /(.*?)(#{re3_regexp})/
     
     normalized_fasta_id=0
-    entries.each do |seq, @definitions|
+    entries.each do |seq, definitions|
       normalized_fasta_id+=1
-      if @ops.sqlite
-        db_normalized_fasta.execute( "insert into db_normalized_fasta values ( ?, ?, ? )", normalized_fasta_id, CSV.generate_line(@definitions), seq )
-      else
-        f_normalized_fasta.puts [normalized_fasta_id,CSV.generate_line(@definitions),seq].join("\t")
-      end
+      db.write_entry_to_fasta(normalized_fasta_id, seq, definitions)
       
     # NOTE the index command is slow because of the match functions, compare with ruby 1.9
       m1 = a_re.match(seq)
@@ -216,7 +110,7 @@ END
           if @ops.verbose
             cli_p(cli, <<-END
 ---
-#{@definitions.join("\n")}
+#{definitions.join("\n")}
 #{@frag2}
 END
 )
@@ -228,15 +122,10 @@ END
 
     end
 
-
     i=0
     @sizes.each do |size,info|
       i+=1
-      if @ops.sqlite
-        db_freq_lookup.execute( "insert into db_freq_lookup values ( ?, ?, ? )", i, size, info.map {|x| x.join(' ')}.join(', ') )
-      else
-        f_freq_lookup.puts [i,size,info.map {|x| x.join(' ')}.join(', ')].join("\t")
-      end
+      db.write_entry_to_freq(i, size, info.map {|x| x.join(' ')}.join(', ') )
     end
     
     if @ops.verbose
@@ -245,12 +134,92 @@ END
       cli_p(cli, "Cut sites found: #{@sizes.values.flatten.size / 2}")
     end
     
-    if !@ops.sqlite
-      f_normalized_fasta.close
-      f_freq_lookup.close
+    db.close
+  end
+
+
+############
+# Command-line
+############
+
+
+# Option parser for command-line
+#
+  def opt_parser
+    std_opts = standard_options
+
+    opts = OptionParser.new
+    opts.banner = 'Usage: genfrag index [options]'
+
+    opts.separator ''
+    opts.separator "  Create a database of sequence fragments that match the last 5' fragment"
+    opts.separator "  cut by two restricting enzymes RE3 and RE5."
+    opts.separator "  The Fasta file defined by the --fasta option is taken as input."
+    opts.separator "  Two files are created for the search function - a lookup file, and"
+    opts.separator "  the contents of the Fasta file rewritten in a special format. You can"
+    opts.separator "  specify the name of the lookup file with the --lookup option."
+
+    opts.separator ''
+
+    ary = [:verbose, :quiet, :tracktime, :indir, :outdir, :sqlite, :re5, :re3,
+      :filelookup, :filefasta
+    ]
+    ary.each { |a| opts.on(*std_opts[a]) }
+
+    opts.separator ''
+    opts.separator '  Common Options:'
+    opts.on( '-h', '--help', 'show this message' ) { @out.puts opts; exit 1 }
+    opts.separator '  Examples:'
+    opts.separator '    genfrag index -f example.fasta --re5 BstYI --re3 MseI'
+    opts.separator '    genfrag index --out /tmp --in . -f example.fasta --re5 BstYI --re3 MseI'
+    opts
+  end
+
+# Parse options passed from command-line
+#
+  def parse( args )
+    opts = opt_parser
+
+    if args.empty?
+      @out.puts opts
+      exit 1
+    end
+
+  # parse the command line arguments
+    opts.parse! args
+  end
+
+# Validate options passed from the command-line
+  def validate_options(o)
+    if o[:filefasta] == nil
+      clierr_p "missing option: must supply fasta filename"
+      exit 1
+    end
+
+    if o[:re5] == nil
+      clierr_p "missing option: re5"
+      exit 1
+    end
+
+    if o[:re3] == nil
+      clierr_p "missing option: re3"
+      exit 1
+    end
+
+    begin
+      Bio::RestrictionEnzyme::DoubleStranded.new(o[:re3])
+    rescue
+      clierr_p "re3 is not an enzyme name"
+      exit 1
+    end
+
+    begin
+      Bio::RestrictionEnzyme::DoubleStranded.new(o[:re5])
+    rescue
+      clierr_p "re5 is not an enzyme name"
+      exit 1
     end
   end
-  
 
 end  # class IndexCommand
 end  # class App

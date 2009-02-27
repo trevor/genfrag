@@ -16,8 +16,10 @@ require 'ostruct'
 require 'bio'
 require 'csv'
 
+
 module Genfrag
 class App
+
 
   # Create a new instance of App, and run the +genfrag+ application given
   # the command line _args_.

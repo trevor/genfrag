@@ -78,6 +78,51 @@ module Genfrag
     end
   end
   
+# Create a unique filename for the frequency file out of a combination of filenames
+#
+  def self.name_freq_lookup(input_filenames=[],filefasta=nil,filelookup=nil,re5=nil,re3=nil)
+    input_filenames = [] if input_filenames.nil?
+    if filelookup
+      # FIXME used to be gsub! - make sure it still works in code
+      return filelookup.gsub(/\.(db|tdf)$/, '')
+    elsif !input_filenames.empty?
+      if re5 and re3
+        [input_filenames.sort,re5.downcase,re3.downcase,'index'].join('_').gsub(/\//,'x')
+      else
+        raise "re5 or re3 is undefined"
+      end
+    elsif filefasta
+    # construct default name
+      if re5 and re3
+        [name_normalized_fasta(nil,filefasta),re5.downcase,re3.downcase,'index'].join('_').gsub(/\//,'x')
+      else
+        raise "re5 or re3 is undefined"
+      end
+    else
+      raise "--lookup undefined and no default filenames passed"
+    end
+  end
+
+# Create a unique filename out of a combination of filenames
+#
+  def self.name_normalized_fasta(input_filenames=[],filefasta=nil)
+    if filefasta
+      # FIXME used to be gsub! - make sure it still works in code
+      return filefasta.gsub(/\.(db|tdf)$/, '')
+    elsif !input_filenames.empty?
+      return [input_filenames.sort, 'normalized'].join('_').gsub(/\//,'x')
+    else
+      raise "--fasta undefined and no default filenames passed"
+    end
+  end
+
+# Return the name of the adapters file without its extension
+#
+  def self.name_adapters(fileadapters=nil)
+    return nil if !fileadapters
+    return fileadapters.gsub(/\.(db|tdf)$/, '')
+  end
+  
 end  # module Genfrag
 
 Genfrag.require_all_libs_relative_to(__FILE__)
