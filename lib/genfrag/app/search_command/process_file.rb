@@ -6,7 +6,8 @@ class SearchCommand < Command
 
   class ProcessFile
     class << self
-      # Process the standardized Fasta file (tdf format)
+    # Process the standardized Fasta file (tdf format)
+    #
       def process_tdf_fasta_file(f_normalized_fasta)
         sequences = {}
         f_normalized_fasta[1..-1].each do |line|
@@ -17,7 +18,7 @@ class SearchCommand < Command
         return sequences
       end
 
-      # Process the standardized Fasta file (sqlite3 format)
+    # Process the standardized Fasta file (sqlite3 format)
       def process_db_fasta_file(db_normalized_fasta)
         sequences = {}
         db_normalized_fasta.execute( "select * from db_normalized_fasta" ) do |row|
@@ -27,7 +28,8 @@ class SearchCommand < Command
         return sequences
       end
 
-      # Process the fragment frequency file (tdf format)
+    # Process the fragment frequency file (tdf format)
+    #
       def process_tdf_freq_lookup(f_freq_lookup)
         sizes = {}
         f_freq_lookup[1..-1].each do |line|
@@ -48,7 +50,8 @@ class SearchCommand < Command
         return sizes
       end
 
-      # Process the fragment frequency file (sqlite3 format)
+    # Process the fragment frequency file (sqlite3 format)
+    #
       def process_db_freq_lookup(db_freq_lookup)
         sizes = {}
         db_freq_lookup.execute( "select * from db_freq_lookup" ) do |row|
@@ -68,7 +71,8 @@ class SearchCommand < Command
         return sizes
       end
 
-      # Process the adapter file (tdf format)
+    # Process the adapter file (tdf format)
+    #
       def process_tdf_adapters(f_adapters, adapter5_name=nil, adapter3_name=nil)
         adapter5_sequence = nil
         adapter3_sequence = nil

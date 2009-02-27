@@ -3,13 +3,23 @@ Genfrag version 0.0.0.1
     http://genfrag.rubyforge.org
     (the "Rough Draught" release)
 
+
 == DESCRIPTION:
 
-GenFrag allows for rapid in-silico searching of fragments cut by
+This is a development release. Few features are functional at this time.
+
+Genfrag allows for rapid in-silico searching of fragments cut by
 different restriction enzymes in large nucleotide acid databases,
 followed by matching specificity adapters which allow a further data
 reduction when looking for differential expression of genes and
 markers.
+
+
+== USAGE:
+
+This works
+  genfrag index -f example.fasta --re5 BstYI --re3 MseI
+  genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5 tt
 
 
 == REQUIREMENTS:
@@ -17,9 +27,11 @@ markers.
 * bioruby
 * sqlite3-ruby
 
+
 == INSTALL:
 
 * sudo gem install genfrag
+
 
 == LICENSE:
 

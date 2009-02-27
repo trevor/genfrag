@@ -4,7 +4,8 @@ class App
 
 class SearchCommand < Command
 
-  # Does the sequence match the adapter
+# Does the sequence match the adapter
+#
   def matches_adapter(five_or_three, primary_frag, complement_frag, raw_frag, trim)
     adapter_specificity = nil
     adapter_sequence    = nil
@@ -89,7 +90,7 @@ class SearchCommand < Command
   #      end
 
     else
-      # only the specificity has been provided
+    # only the specificity has been provided
       new_primary_frag = ('.' * dots_on_primary) + ('+' * tail.size) + primary_frag[ lead_in .. -1 ]
       new_complement_frag = complement_frag
 
@@ -104,7 +105,8 @@ class SearchCommand < Command
   end
 
 
-  # Find the fragments that match the search parameters
+# Find the fragments that match the search parameters
+#
   def find_matching_fragments(sizes, left, right)
     hits=[]
     s = (@adapters[:adapter5_size] or 0) + (@adapters[:adapter3_size] or 0)
@@ -130,10 +132,10 @@ class SearchCommand < Command
   end
 
   def right_tail_of(s)
-    # 'PpiI' => "n n n n n n^n n n n n n n g a a c n n n n n c t c n n n n n n n n n n n n n^n"
-    # => 'n'
-    # 'BstYI' => "r^g a t c y"
-    # => 'gatcy'
+  # 'PpiI' => "n n n n n n^n n n n n n n g a a c n n n n n c t c n n n n n n n n n n n n n^n"
+  # => 'n'
+  # 'BstYI' => "r^g a t c y"
+  # => 'gatcy'
 
     if s =~ /.*\^(.*)/
       return $1.tr(' ', '')
@@ -143,10 +145,10 @@ class SearchCommand < Command
   end
 
   def left_tail_of(s)
-    # 'PpiI' => "n n n n n n^n n n n n n n g a a c n n n n n c t c n n n n n n n n n n n n n^n"
-    # => 'nnnnnn'
-    # 'BstYI' => "r^g a t c y"
-    # => 'r'
+  # 'PpiI' => "n n n n n n^n n n n n n n g a a c n n n n n c t c n n n n n n n n n n n n n^n"
+  # => 'nnnnnn'
+  # 'BstYI' => "r^g a t c y"
+  # => 'r'
 
     if s =~ /([^\^]*)\^/
       return $1.tr(' ', '')

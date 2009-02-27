@@ -52,29 +52,28 @@ module Genfrag
       t1 = Time.now
       yield
 
-      ensure
-
-        t2 = Time.now
-        dt = t2 - t1
-        if verbose
-          if f == nil
-            f = $stdout
-          end
-          f.print "\nElapsed time "
-          hours = dt.to_i/3600
-          dt -= hours*3600
-          mins  = dt.to_i/60
-          dt -= mins*60
-          secs  = dt
-          secs = secs.to_i if secs > 25
-          if hours > 0
-            f.print hours.to_i," hours "
-          end
-          if mins > 0
-            f.print mins.to_i," minutes "
-          end
-          f.print secs," seconds\n" 
+    ensure
+      t2 = Time.now
+      dt = t2 - t1
+      if verbose
+        if f == nil
+          f = $stdout
         end
+        f.print "\nElapsed time "
+        hours = dt.to_i/3600
+        dt -= hours*3600
+        mins  = dt.to_i/60
+        dt -= mins*60
+        secs  = dt
+        secs = secs.to_i if secs > 25
+        if hours > 0
+          f.print hours.to_i," hours "
+        end
+        if mins > 0
+          f.print mins.to_i," minutes "
+        end
+        f.print secs," seconds\n" 
+      end
     end
   end
   
