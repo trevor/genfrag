@@ -116,8 +116,6 @@ class SearchCommand < Command
       raise ArgumentError
     end
     
-    puts @ops.inspect
-    
   # Set defaults
     @ops.verbose        ||= false
     @ops.quiet          ||= false
@@ -136,20 +134,16 @@ class SearchCommand < Command
     @re5_ds, @re3_ds = [@ops.re5, @ops.re3].map {|x| Bio::RestrictionEnzyme::DoubleStranded.new(x)}
     if @ops.verbose
       cli_p(cli, <<-END
-    RE5: @ops.re5
+RE5: #{@ops.re5}
+#{@re5_ds.aligned_strands_with_cuts.primary}
+#{@re5_ds.aligned_strands_with_cuts.complement}
 
-    @re5_ds.aligned_strands_with_cuts.primary
+RE3: #{@ops.re3}
+#{@re3_ds.aligned_strands_with_cuts.primary}
+#{@re3_ds.aligned_strands_with_cuts.complement}
 
-    @re5_ds.aligned_strands_with_cuts.complement
-
-    RE3: @ops.re3
-
-    @re3_ds.aligned_strands_with_cuts.primary
-    
-    @re3_ds.aligned_strands_with_cuts.complement
-
-  Adapter5: #{@ops.adapter5}
-  Adapter3: #{@ops.adapter3}
+adapter5: #{@ops.adapter5}
+adapter3: #{@ops.adapter3}
 END
 )
     end
@@ -227,36 +221,34 @@ END
       cli_p(cli,"Nothing found") if @ops.verbose
     end
 
-    results.each do |r|
-      @r = r
+    sorted_results = {}
+    results.sort {|a,b| a[:seq] <=> b[:seq]}.each do |r|
+      raise "shouldn't happen" if sorted_results[r[:seq]] != nil
+      sorted_results[r[:seq]] = {}
+      x = sorted_results[r[:seq]]
+      x['sequence size'] = r[:seq].size
+      x['fragment - primary strand'] = r[:primary_frag]
+      x['fragment - complement strand'] = r[:complement_frag]
+      x['fragment with adapters - primary strand'] = r[:primary_frag_with_adapters]
+      x['fragment with adapters - complement strand'] = r[:complement_frag_with_adapters]
+    end
+
+    if @ops.verbose
+      ary = ['sequence size', 'fragment - primary strand', 'fragment - complement strand',
+        'fragment with adapters - primary strand', 'fragment with adapters - complement strand']    
+    else
+      ary = ['fragment with adapters - primary strand', 'fragment with adapters - complement strand']    
+    end
+    sorted_results.each do |k,v|
+      cli_p(cli, '---')
       if @ops.verbose
-        cli_p(cli, <<-END
----
-#{@sequences[@r[:entry][:fasta_id]][:definitions].join("\n")}
+        cli_p(cli, '- sequence')
+        cli_p(cli, "  #{k}")
+      end
 
-Original sequence (#{@r[:seq].size}bp):
-
-#{@r[:seq]}
-
-
-Fragment (#{@r[:primary_frag].size}bp):
-  5' - #{@r[:primary_frag]} - 3'
-  3' - #{@r[:complement_frag]} - 5'
-
-Fragment - after adapters (#{@r[:primary_frag_with_adapters].size}bp):
-  5' - #{@r[:primary_frag_with_adapters]} - 3'
-  3' - #{@r[:complement_frag_with_adapters]} - 5'
-END
-)
-      else
-        cli_p(cli, <<-END
----
-@sequences[@r[:entry][:fasta_id]][:definitions].join("\n")
-
-  5' - @r[:primary_frag_with_adapters] - 3'
-  3' - @r[:complement_frag_with_adapters] - 5'
-END
-)
+      ary.each do |a|
+        cli_p(cli, "- #{a}")
+        cli_p(cli, "  #{v[a]}")
       end
     end
 

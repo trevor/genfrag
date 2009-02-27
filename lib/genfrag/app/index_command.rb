@@ -49,7 +49,6 @@ class IndexCommand < Command
     @ops.indir      ||= '.'
     @ops.outdir     ||= '.'
 
-
     @input_filenames = input_filenames.empty? ? [@ops.filefasta] : input_filenames
     @sizes = {}    
     db = IndexCommand::DB.new(@ops, @input_filenames)
