@@ -1,6 +1,7 @@
 Genfrag version 0.0.0.1
     by Pjotr Prins and Trevor Wennblom
     http://genfrag.rubyforge.org
+    http://rubyforge.org/projects/genfrag/
     (the "Rough Draught" release)
 
 
