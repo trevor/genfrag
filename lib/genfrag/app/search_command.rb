@@ -54,10 +54,11 @@ class SearchCommand < Command
     opts.on( '-h', '--help', 'show this message' ) { @out.puts opts; exit }
     
     opts.separator '  Examples:'
+    opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI -v'
     opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5 tt'
     opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --add 26 --adapter5 ct --adapter3 aa --size 190,215'
     opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5-size 11 --adapter5 tt --adapter3-size 15 --size 168'
-    opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5-sequence GACTGCGTAGTGATC --adapter5 tt --adapter3-size 15 --size 168'
+    opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5-sequence GACTGCGTAGTGATC --adapter5 tt --size 168'
     opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5-size 11 --adapter5 ct --adapter3-size 15 --adapter3 aa --size 190,215'
     opts.separator '    genfrag search -f example.fasta --re5 BstYI --re3 MseI --add 26 --named-adapter5 BstYI-T4 --named-adapter3 MseI-21 --size 190,215'
     opts
@@ -173,10 +174,10 @@ END
     end
     
     if @ops.adapter5_size and @ops.adapter5_sequence and (@ops.adapter5_size != @adapters[:adapter5_size])
-      raise ArgumentError, "--adapter5-sequence and --adapter5-size both supplied"
+      raise ArgumentError, '--adapter5-sequence and --adapter5-size both supplied, may only have one'
     end
     if @ops.adapter3_size and @ops.adapter3_sequence and (@ops.adapter3_size != @adapters[:adapter3_size])
-      raise ArgumentError, "--adapter3-sequence and --adapter3-size both supplied"
+      raise ArgumentError, '--adapter3-sequence and --adapter3-size both supplied, may only have one'
     end
 
     @trim = calculate_trim_for_nucleotides(@re5_ds, @re3_ds)

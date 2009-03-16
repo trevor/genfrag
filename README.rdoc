@@ -1,8 +1,7 @@
-Genfrag version 0.0.0.1
+Genfrag version 0.0.0.2
     by Pjotr Prins and Trevor Wennblom
     http://genfrag.rubyforge.org
     http://rubyforge.org/projects/genfrag/
-    (the "Rough Draught" release)
 
 
 == DESCRIPTION:
@@ -32,6 +31,191 @@ This works
 == INSTALL:
 
 * sudo gem install genfrag
+
+
+== EXAMPLES:
+
+Search command
+
+example 1
+
+will return all sequences from the file 'example.fasta.tdf' that are referenced by the index 'example.fasta_bstyi_msei_index.tdf'
+  genfrag search -f example.fasta --re5 BstYI --re3 MseI -v
+
+example of one entry from output
+
+  ---
+  - sequence
+    gattgcaacaatcgctttggaggatgtaattgtgcaattggccaatgcacaaatcgacaatgtccttgttttgctgctaatcgtgaatgcgatccagatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttttaattggggtgcatttacatgggactctcttaaaaagaatgagtatctcggagaatatactggagaactgatcactcatgatgaagctaatgagcgtgggagaatagaagatcggattggttcttcctacctctttaccttgaatgatca
+  - sequence size
+    380
+  - fragment - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+  - fragment - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+  - fragment with adapters - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+  - fragment with adapters - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+
+The first cut is made using RE5 (restriction enzyme with first match in reference to 5') BstYI. BstYI has the cut patten
+5' - r^g a t c y - 3'
+3' - y c t a g^r - 5'
+
+The first 96bp of the sequence are removed when BstYI makes its cut, starting the strand fragment. The primary strand
+fragment begins with 'gatctttgtc', four bases are lost from the complement strand due to the cut pattern of BstYI, therefore 'gatc'
+from the primary strand has no hydrogen bonds with the complement strand. These missing nucleotides are represented with a period
+('.').
+
+The second cut is made using RE3 (restriction enzyme with first match in reference to 3') MseI. MseI has the cut pattern
+5' - t^t a a - 3'
+3' - a a t^t - 5'
+
+This leaves a final fragment of 136bp. The way MseI cuts will leave the complement strand two nucleotides longer than the primary
+strand. This is represented on the primary stand with two periods.
+
+
+example 2
+
+will return all blah some sequences from the file 'example.fasta.tdf' using the index 'example.fasta_bstyi_msei_index.tdf'
+  genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter5 t
+
+  ---
+  - sequence
+    gattgcaacaatcgctttggaggatgtaattgtgcaattggccaatgcacaaatcgacaatgtccttgttttgctgctaatcgtgaatgcgatccagatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttttaattggggtgcatttacatgggactctcttaaaaagaatgagtatctcggagaatatactggagaactgatcactcatgatgaagctaatgagcgtgggagaatagaagatcggattggttcttcctacctctttaccttgaatgatca
+  - sequence size
+    380
+  - fragment - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+  - fragment - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+  - fragment with adapters - primary strand
+    +++++ttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+  - fragment with adapters - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+
+The adapter can be considered an extension to the restriction enzyme. When searching for a specified adapter, anything that
+the restriction enzyme would need to make its match is first ignored before comparing the adapter to the sequence.
+
+It was shown previously that BstYI has the cut patten
+5' - r^g a t c y - 3'
+3' - y c t a g^r - 5'
+
+The 'y' symbol indicates a nucleotide of 't' or 'c'.[Footnote 1] Adapter5 is defined as the nucleotide 't' in this example.
+5 nucleotides from the restriction enzyme are matched ('gatct') as indicated by the plus ('+') symbols, then the 1 nucleotide
+from the adapter is matched ('t').
+
+Note that in this current version of Genfrag only the primary strand has the plus symbols applied. In a future version
+the complement strand would have a plus symbol in place of the initial 'a'.
+
+
+example 3
+
+The previous example with a longer adapter
+  genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter5 ttgtcg
+
+  ---
+  - sequence
+    gattgcaacaatcgctttggaggatgtaattgtgcaattggccaatgcacaaatcgacaatgtccttgttttgctgctaatcgtgaatgcgatccagatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttttaattggggtgcatttacatgggactctcttaaaaagaatgagtatctcggagaatatactggagaactgatcactcatgatgaagctaatgagcgtgggagaatagaagatcggattggttcttcctacctctttaccttgaatgatca
+  - sequence size
+    380
+  - fragment - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+  - fragment - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+  - fragment with adapters - primary strand
+    +++++ttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+  - fragment with adapters - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+  
+
+example 4
+
+genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter3 aacca
+
+  ---
+  - sequence
+    gattgcaacaatcgctttggaggatgtaattgtgcaattggccaatgcacaaatcgacaatgtccttgttttgctgctaatcgtgaatgcgatccagatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttttaattggggtgcatttacatgggactctcttaaaaagaatgagtatctcggagaatatactggagaactgatcactcatgatgaagctaatgagcgtgggagaatagaagatcggattggttcttcctacctctttaccttgaatgatca
+  - sequence size
+    380
+  - fragment - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+  - fragment - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+  - fragment with adapters - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggtt+..
+  - fragment with adapters - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+
+It was shown previously that MseI has the cut patten
+  5' - t^t a a - 3'
+  3' - a a t^t - 5'
+
+Looking at primary strand fragment, the ending nucleotide remaining that has also been used by the restriction enzyme to
+match is 't'. When the Adapter3 filter is made, the restriction enzyme match will replace the 't' with a plus symbol.
+
+An end of the primary strand is
+  5' - atggattcatggtt+.. - 3'
+
+If that end is reversed and complemented, 'aaca' is the initial four nucleotides that match.
+
+Note that in this current version of Genfrag only the primary strand has the plus symbols applied. In a future version
+the complement strand would have a plus symbol in place of the final 'aat'.
+
+
+example 5
+
+The previous example with a adapter3 using alternate notation
+
+genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter3 _tggtt
+
+  ---
+  - sequence
+    gattgcaacaatcgctttggaggatgtaattgtgcaattggccaatgcacaaatcgacaatgtccttgttttgctgctaatcgtgaatgcgatccagatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttttaattggggtgcatttacatgggactctcttaaaaagaatgagtatctcggagaatatactggagaactgatcactcatgatgaagctaatgagcgtgggagaatagaagatcggattggttcttcctacctctttaccttgaatgatca
+  - sequence size
+    380
+  - fragment - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+  - fragment - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+  - fragment with adapters - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggtt+..
+  - fragment with adapters - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+
+If Adapter3 is supplied with an initial underscore ('_') in the sequence, the sequence is matched directly without a
+reverse complement.
+
+
+example 6
+
+Using two adapters together
+
+genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter5 ttgtcg --adapter3 aacca
+
+  ---
+  - fragment with adapters - primary strand
+    +++++ttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggtt+..
+  - fragment with adapters - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+
+Note that in this current version of Genfrag only the primary strand has the plus symbols applied. In a future version
+the complement strand would have a plus symbol in place of the initial 'a' and the final 'aat'.
+
+
+example 7
+
+Using an adapter and specifying an adapter size
+
+You may know the size of your adapter
+
+
+
+Footnotes
+[1]: 
+require 'rubygems'
+require 'bio'
+puts Bio::Sequence::NA.new('y').to_re   # => (?-mix:[tcy])
 
 
 == LICENSE:

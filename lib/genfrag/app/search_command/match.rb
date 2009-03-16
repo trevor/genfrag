@@ -26,6 +26,7 @@ class SearchCommand < Command
       primary_frag =~ /(\.*)/
       dots_on_primary = $1.size
       lead_in = tail.size + dots_on_primary
+
       return false if primary_frag[ lead_in .. -1 ].tr('.', '') !~ /^#{adapter_specificity}/i
 
     elsif five_or_three == 3
