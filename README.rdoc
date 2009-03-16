@@ -245,8 +245,29 @@ example 9
 
     Using an adapter and specifying an adapter size
 
-    You may know the size of your adapter
+You may know the size of your adapter, but not have a particular sequence in mind. The unknown nucleotides will be represented
+with a question mark character ('?').
     
+    genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5 ttgtcg --adapter3 aacca --adapter5-size 6 --adapter3-size 8
+
+    ---
+    - fragment with adapters - primary strand
+      ????????ttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggtt??????
+    - fragment with adapters - complement strand
+      ===....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat===
+
+example 10
+
+The previous example but with short adapter sizes, these can be specified with 'adapter5-size' or 'adapter3-size'.
+
+    genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5 ttgtcg --adapter3 aacca --adapter5-size 1 --adapter3-size 2
+
+  ---
+  - fragment with adapters - primary strand
+    ====?ttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggtt??=
+  - fragment with adapters - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+
     
 Footnotes
 [1]: 

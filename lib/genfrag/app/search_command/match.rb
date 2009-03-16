@@ -55,45 +55,23 @@ class SearchCommand < Command
       raise "First argument to matches_adapter must be a '5' or a '3'. Received: #{five_or_three.inspect}"
     end
 
-    # old ...
-    #return false if raw_frag[ [trim_primary, trim_complement].max .. -1 ] !~ /^#{adapter_specificity}/i
-    #overhang = [trim_primary, trim_complement].max - [trim_primary, trim_complement].min
-    #lead_in = overhang
-    
-
-
     if adapter_sequence
+    # adapter-sequence supplied
       new_primary_frag, new_complement_frag = preserve_or_add(adapter_sequence.size, lead_in, adapter_sequence, primary_frag, complement_frag)
     elsif adapter_size
-
-
-  # old ...
-  #      # only the size and the specificity of the adapter has been provided
-  #      size_of_specificity = adapter_specificity.size
-  #      size_of_sequence    = adapter_size - size_of_specificity
-  #      if lead_in >= size_of_sequence
-  #        # need to preserve dots on primary string
-  #        new_primary_frag = primary_frag[ 0 .. (lead_in - 1) ].upcase + primary_frag[ lead_in .. -1 ]
-  #        new_complement_frag = complement_frag
-  #      else
-  #        # need to add dots to beginning of complement string
-  #        new_primary_frag = ('+' * (size_of_sequence - lead_in) ) + primary_frag[ 0 .. (lead_in - 1) ].upcase + primary_frag[ lead_in .. -1 ]
-  #        new_complement_frag = ('.' * (size_of_sequence - lead_in) ) + complement_frag
-  #      end
-
+    # adapter-size supplied
+      new_primary_frag, new_complement_frag = preserve_or_add(adapter_size, lead_in, adapter_sequence, primary_frag, complement_frag)
     else
     # only the specificity has been provided
       new_primary_frag = ('.' * dots_on_primary) + ('+' * tail.size) + primary_frag[ lead_in .. -1 ]
       new_complement_frag = complement_frag
-
     end
 
     if five_or_three == 3
-      new_primary_frag.reverse!
-      new_complement_frag.reverse!
+      return [new_primary_frag.reverse, new_complement_frag.reverse]
+    else
+      return [new_primary_frag, new_complement_frag]
     end
-
-    return [new_primary_frag, new_complement_frag]
   end
 
 
