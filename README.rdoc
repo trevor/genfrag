@@ -35,14 +35,17 @@ This works
 
 == EXAMPLES:
 
-Search command
+=== Index command
 
-example 1
+=== Search command
 
-will return all sequences from the file 'example.fasta.tdf' that are referenced by the index 'example.fasta_bstyi_msei_index.tdf'
+==== Example 1
+
+Return all sequences from the file 'example.fasta.tdf' that are referenced by the index 'example.fasta_bstyi_msei_index.tdf'
+
   genfrag search -f example.fasta --re5 BstYI --re3 MseI -v
 
-example of one entry from output
+Only one entry from output is shown below.
 
   ---
   - sequence
@@ -59,8 +62,8 @@ example of one entry from output
     ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
 
 The first cut is made using RE5 (restriction enzyme with first match in reference to 5') BstYI. BstYI has the cut patten
-5' - r^g a t c y - 3'
-3' - y c t a g^r - 5'
+  5' - r^g a t c y - 3'
+  3' - y c t a g^r - 5'
 
 The first 96bp of the sequence are removed when BstYI makes its cut, starting the strand fragment. The primary strand
 fragment begins with 'gatctttgtc', four bases are lost from the complement strand due to the cut pattern of BstYI, therefore 'gatc'
@@ -68,16 +71,17 @@ from the primary strand has no hydrogen bonds with the complement strand. These 
 ('.').
 
 The second cut is made using RE3 (restriction enzyme with first match in reference to 3') MseI. MseI has the cut pattern
-5' - t^t a a - 3'
-3' - a a t^t - 5'
+  5' - t^t a a - 3'
+  3' - a a t^t - 5'
 
 This leaves a final fragment of 136bp. The way MseI cuts will leave the complement strand two nucleotides longer than the primary
 strand. This is represented on the primary stand with two periods.
 
 
-example 2
+==== Example 2
 
-will return all blah some sequences from the file 'example.fasta.tdf' using the index 'example.fasta_bstyi_msei_index.tdf'
+This demonstrates using an adapter.
+
   genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter5 t
 
   ---
@@ -98,8 +102,8 @@ The adapter can be considered an extension to the restriction enzyme. When searc
 the restriction enzyme would need to make its match is first ignored before comparing the adapter to the sequence.
 
 It was shown previously that BstYI has the cut patten
-5' - r^g a t c y - 3'
-3' - y c t a g^r - 5'
+  5' - r^g a t c y - 3'
+  3' - y c t a g^r - 5'
 
 The 'y' symbol indicates a nucleotide of 't' or 'c'.[Footnote 1] Adapter5 is defined as the nucleotide 't' in this example.
 5 nucleotides from the restriction enzyme are matched ('gatct') as indicated by the plus ('+') symbols, then the 1 nucleotide
@@ -109,9 +113,10 @@ Note that in this current version of Genfrag only the primary strand has the plu
 the complement strand would have a plus symbol in place of the initial 'a'.
 
 
-example 3
+==== Example 3
 
-The previous example with a longer adapter
+The previous example with a longer adapter.
+
   genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter5 ttgtcg
 
   ---
@@ -129,9 +134,11 @@ The previous example with a longer adapter
     ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
   
 
-example 4
+==== Example 4
 
-genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter3 aacca
+This demonstrates Adapter3.
+
+  genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter3 aacca
 
   ---
   - sequence
@@ -163,11 +170,11 @@ Note that in this current version of Genfrag only the primary strand has the plu
 the complement strand would have a plus symbol in place of the final 'aat'.
 
 
-example 5
+==== Example 5
 
-The previous example with a adapter3 using alternate notation
+The previous example with Adapter3 using alternate notation.
 
-genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter3 _tggtt
+  genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter3 _tggtt
 
   ---
   - sequence
@@ -187,11 +194,11 @@ If Adapter3 is supplied with an initial underscore ('_') in the sequence, the se
 reverse complement.
 
 
-example 6
+==== Example 6
 
-Using two adapters together
+Using two adapters together.
 
-genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter5 ttgtcg --adapter3 aacca
+  genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter5 ttgtcg --adapter3 aacca
 
   ---
   - fragment with adapters - primary strand
@@ -203,15 +210,15 @@ Note that in this current version of Genfrag only the primary strand has the plu
 the complement strand would have a plus symbol in place of the initial 'a' and the final 'aat'.
 
 
-example 7
+==== Example 7
 
-Using an adapter and specifying an adapter sequence
+Using an adapter and specifying an adapter sequence.
 
 You may have particular adapter sequences that you have used. These can be specified with 'adapter5-sequence' or 'adapter3-sequence'.
 Note that 'adapter3-sequence' will be reversed when applied to the primary strand. Any change to the sequence caused
-by the sequence will be noted with an equals ('=') symbol.
+by the adapter sequence will be noted with an equals ('=') symbol.
 
-genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter5 ttgtcg --adapter3 aacca --adapter5-sequence NXNXNXNX --adapter3-sequence NZNZNZNZ
+  genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter5 ttgtcg --adapter3 aacca --adapter5-sequence NXNXNXNX --adapter3-sequence NZNZNZNZ
 
   ---
   - sequence
@@ -228,9 +235,9 @@ genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter5 ttgtcg --ad
     ===....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat=====
 
 
-example 8
+==== Example 8
 
-The previous example but with short adapter sequences
+The previous example but with short adapter sequences.
 
   genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5 ttgtcg --adapter3 aacca --adapter5-sequence X --adapter3-sequence Z
 
@@ -241,13 +248,13 @@ The previous example but with short adapter sequences
     ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
 
 
-example 9
+==== Example 9
 
-    Using an adapter and specifying an adapter size
+Using an adapter and specifying an adapter size, these can be specified with 'adapter5-size' or 'adapter3-size'.
 
 You may know the size of your adapter, but not have a particular sequence in mind. The unknown nucleotides will be represented
 with a question mark character ('?').
-    
+
     genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5 ttgtcg --adapter3 aacca --adapter5-size 6 --adapter3-size 8
 
     ---
@@ -256,9 +263,10 @@ with a question mark character ('?').
     - fragment with adapters - complement strand
       ===....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat===
 
-example 10
 
-The previous example but with short adapter sizes, these can be specified with 'adapter5-size' or 'adapter3-size'.
+==== Example 10
+
+The previous example but with short adapter sizes.
 
     genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5 ttgtcg --adapter3 aacca --adapter5-size 1 --adapter3-size 2
 
@@ -269,42 +277,25 @@ The previous example but with short adapter sizes, these can be specified with '
     ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
 
 
-example 11
+==== Example 11
 
 An exact fragmentation length can be searched for with the 'seqsize' argument.
 
-genfrag search -f example.fasta --re5 BstYI --re3 MseI -s 136
----
-- fragment with adapters - primary strand
-  gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
-- fragment with adapters - complement strand
-  ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+  genfrag search -f example.fasta --re5 BstYI --re3 MseI -s 136
+
+  ---
+  - fragment with adapters - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+  - fragment with adapters - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
 
 
-example 12
+==== Example 12
 
 The previous example with multiple fragment result sizes accepted. Different sizes can be separated by commas.
 
-genfrag search -f example.fasta --re5 BstYI --re3 MseI -s 136,166
+  genfrag search -f example.fasta --re5 BstYI --re3 MseI -s 136,166
 
----
-- fragment with adapters - primary strand
-  gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaattcctccttcaaaccaataaaaagattctcattggaaagtctgatgttcatggatggggtgcatttacatgggactctct..
-- fragment with adapters - complement strand
-  ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttaaggaggaagtttggttatttttctaagagtaacctttcagactacaagtacctaccccacgtaaatgtaccctgagagaat
----
-- fragment with adapters - primary strand
-  gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
-- fragment with adapters - complement strand
-  ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
-
-
-example 12
-
-  The previous example with a sequence size range accepted. Since you may only have an approximate idea of the fragment size
-you are expecting, you may give a range by using a plus symbol ('+') to indicate a tolerance to a size.
-
-  genfrag search -f example.fasta --re5 BstYI --re3 MseI -s 144+10,166
   ---
   - fragment with adapters - primary strand
     gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaattcctccttcaaaccaataaaaagattctcattggaaagtctgatgttcatggatggggtgcatttacatgggactctct..
@@ -317,11 +308,30 @@ you are expecting, you may give a range by using a plus symbol ('+') to indicate
     ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
 
 
-Footnotes
+==== Example 13
+
+The previous example with a sequence size range accepted. Since you may only have an approximate idea of the fragment size
+you are expecting, you may give a range by using a plus symbol ('+') to indicate a tolerance to a size.
+
+  genfrag search -f example.fasta --re5 BstYI --re3 MseI -s 144+10,166
+  
+  ---
+  - fragment with adapters - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaattcctccttcaaaccaataaaaagattctcattggaaagtctgatgttcatggatggggtgcatttacatgggactctct..
+  - fragment with adapters - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttaaggaggaagtttggttatttttctaagagtaacctttcagactacaagtacctaccccacgtaaatgtaccctgagagaat
+  ---
+  - fragment with adapters - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+  - fragment with adapters - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+
+
+==== Footnotes
 [1]: 
-require 'rubygems'
-require 'bio'
-puts Bio::Sequence::NA.new('y').to_re   # => (?-mix:[tcy])
+  require 'rubygems'
+  require 'bio'
+  puts Bio::Sequence::NA.new('y').to_re   # => (?-mix:[tcy])
 
 
 == LICENSE:
