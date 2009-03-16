@@ -50,7 +50,9 @@ class App
         @out.puts "Genfrag #{::Genfrag::VERSION}"
         nil
       else
-        raise "Unknown command #{cmd_str.inspect}"
+        @err.puts "Unknown command #{cmd_str.inspect}"
+        help
+        nil
       end
 
     cmd.cli_run args if cmd
