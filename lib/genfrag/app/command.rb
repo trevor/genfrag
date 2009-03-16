@@ -89,9 +89,9 @@ class Command
           lambda { |value|
             options[:filefasta] = value
           }],
-      :size => ['-s', '--size SIZE', Array, '',
+      :seqsize => ['-s', '--seqsize SIZE', Array, '',
           lambda { |value|
-            options[:size] = value
+            options[:seqsize] = value
           }],
           
       :adapter5 => ['-y', '--adapter5 ADAPTER', String, '',

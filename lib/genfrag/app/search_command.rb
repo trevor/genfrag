@@ -45,7 +45,7 @@ class SearchCommand < Command
     ary = [:verbose, :quiet, :tracktime, :indir, :outdir, :sqlite, :re5, :re3,
       :filelookup, :filefasta, :fileadapters, :adapter5_sequence, :adapter3_sequence,
       :adapter5_size, :adapter3_size, :named_adapter5, :named_adapter3,
-      :adapter5, :adapter3
+      :adapter5, :adapter3, :seqsize
     ]
     ary.each { |a| opts.on(*std_opts[a]) }
         
@@ -123,7 +123,7 @@ class SearchCommand < Command
     @ops.sqlite         ||= false
     @ops.re5            ||= nil
     @ops.re3            ||= nil
-    @ops.size           ||= [0]
+    @ops.seqsize        ||= [0]
     @ops.adapter5_size  ||= nil
     @ops.adapter3_size  ||= nil
     @ops.adapter5       ||= nil
@@ -173,6 +173,23 @@ END
       raise ArgumentError, '--adapter3 missing in presence of --adapter3-sequence or --adapter3-size'
     end
     
+    if [@ops.seqsize].flatten == [0] or [@ops.seqsize].flatten == [nil] or [@ops.seqsize].flatten == ['0']
+      @ops.seqsize = nil
+    else
+      h = {:ranges => [], :ints => []}
+      @ops.seqsize.flatten.each do |s|
+        if s.include?('+')
+          a = s.split('+')
+          c = a[0].to_i
+          r = a[1].to_i
+          h[:ranges] << (c-r..c+r)
+        else
+          h[:ints] << s.to_i
+        end
+      end
+      @ops.seqsize = h
+    end
+    
     if processed_adapters
       adapter_setup_1(processed_adapters)
     else
@@ -193,11 +210,10 @@ END
   # Start calculations
   #
     left_trim, right_trim = calculate_left_and_right_trims(@trim)
-  
-    matching_fragments = find_matching_fragments(@sizes, left_trim, right_trim)
+    
     results = []
    
-    matching_fragments.each do |hit|
+    @sizes.values.each do |hit|
       hit.each do |entry|
         seq = @sequences[entry[:fasta_id]][:sequence]
         raw_frag = seq[entry[:offset]..(entry[:offset]+entry[:raw_size]-1)]
@@ -207,7 +223,7 @@ END
         p = primary_frag.dup
         c = complement_frag.dup
         
-      # note the next two if-statements at this lever chain together with 'p' and 'c'
+      # note the next two if-statements at this level chain together with 'p' and 'c'
         if @adapters[:adapter5_specificity]
           p, c = matches_adapter(5, p, c, raw_frag, @trim)
           next if !p  # next if returned false -- no match
@@ -220,8 +236,23 @@ END
         
         primary_frag_with_adapters = p
         complement_frag_with_adapters = c
+                
+        if @ops.seqsize
+          primary_frag_with_adapters_size = primary_frag_with_adapters.size
+          good = false
+          if @ops.seqsize[:ints].include?(primary_frag_with_adapters_size)
+            good = true
+          else
+            @ops.seqsize[:ranges].each do |range|
+              good = true if range.include?(primary_frag_with_adapters_size)
+              break if good
+            end
+          end
+        # next if fragment size not in range
+          next if !good
+        end
         
-        results << {:raw_frag => raw_frag, :primary_frag => primary_frag, :primary_frag_with_adapters => primary_frag_with_adapters, :complement_frag => complement_frag, :complement_frag_with_adapters => complement_frag_with_adapters, :entry => entry, :seq => seq} # FIXME
+        results << {:raw_frag => raw_frag, :primary_frag => primary_frag, :primary_frag_with_adapters => primary_frag_with_adapters, :complement_frag => complement_frag, :complement_frag_with_adapters => complement_frag_with_adapters, :entry => entry, :seq => seq}
       end
     end
   

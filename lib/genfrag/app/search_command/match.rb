@@ -75,19 +75,21 @@ class SearchCommand < Command
   end
 
 
+=begin
 # Find the fragments that match the search parameters
 #
   def find_matching_fragments(sizes, left, right)
     hits=[]
+    
     s = (@adapters[:adapter5_size] or 0) + (@adapters[:adapter3_size] or 0)
 
-    if [@ops.size].flatten == [0] or [@ops.size].flatten == [nil] or [@ops.size].flatten == ["0"]
+    if [@ops.seqsize].flatten == [0] or [@ops.seqsize].flatten == [nil] or [@ops.seqsize].flatten == ['0']
       sizes.each do |raw_size, info|
         hits << info
       end
 
     else
-      [@ops.size].flatten.each do |seek_size|
+      [@ops.seqsize].flatten.each do |seek_size|
         seek_size = seek_size.to_i
         sizes.each do |raw_size, info|
           frag_size = raw_size - left[:trim_from_both] - right[:trim_from_both]
@@ -100,6 +102,7 @@ class SearchCommand < Command
 
     return hits
   end
+=end
 
   def right_tail_of(s)
   # 'PpiI' => "n n n n n n^n n n n n n n g a a c n n n n n c t c n n n n n n n n n n n n n^n"

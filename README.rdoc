@@ -6,7 +6,7 @@ Genfrag version 0.0.0.2
 
 == DESCRIPTION:
 
-This is a development release. Few features are functional at this time.
+This is a development release. Some features are functional at this time.
 
 Genfrag allows for rapid in-silico searching of fragments cut by
 different restriction enzymes in large nucleotide acid databases,
@@ -268,7 +268,55 @@ The previous example but with short adapter sizes, these can be specified with '
   - fragment with adapters - complement strand
     ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
 
-    
+
+example 11
+
+An exact fragmentation length can be searched for with the 'seqsize' argument.
+
+genfrag search -f example.fasta --re5 BstYI --re3 MseI -s 136
+---
+- fragment with adapters - primary strand
+  gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+- fragment with adapters - complement strand
+  ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+
+
+example 12
+
+The previous example with multiple fragment result sizes accepted. Different sizes can be separated by commas.
+
+genfrag search -f example.fasta --re5 BstYI --re3 MseI -s 136,166
+
+---
+- fragment with adapters - primary strand
+  gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaattcctccttcaaaccaataaaaagattctcattggaaagtctgatgttcatggatggggtgcatttacatgggactctct..
+- fragment with adapters - complement strand
+  ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttaaggaggaagtttggttatttttctaagagtaacctttcagactacaagtacctaccccacgtaaatgtaccctgagagaat
+---
+- fragment with adapters - primary strand
+  gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+- fragment with adapters - complement strand
+  ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+
+
+example 12
+
+  The previous example with a sequence size range accepted. Since you may only have an approximate idea of the fragment size
+you are expecting, you may give a range by using a plus symbol ('+') to indicate a tolerance to a size.
+
+  genfrag search -f example.fasta --re5 BstYI --re3 MseI -s 144+10,166
+  ---
+  - fragment with adapters - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaattcctccttcaaaccaataaaaagattctcattggaaagtctgatgttcatggatggggtgcatttacatgggactctct..
+  - fragment with adapters - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttaaggaggaagtttggttatttttctaagagtaacctttcagactacaagtacctaccccacgtaaatgtaccctgagagaat
+  ---
+  - fragment with adapters - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+  - fragment with adapters - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+
+
 Footnotes
 [1]: 
 require 'rubygems'

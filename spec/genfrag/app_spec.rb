@@ -58,9 +58,8 @@ describe Genfrag::App do
   end
 
   it 'should report an error for unrecognized commands' do
-    lambda {@app.cli_run %w[bad_func]}.should raise_error(SystemExit)
-    @err.readline.should == 'ERROR:  While executing genfrag ... (RuntimeError)'
-    @err.readline.should == '    Unknown command "bad_func"'
+    @app.cli_run %w[bad_func]
+    @err.readline.should == 'Unknown command "bad_func"'
   end
 
   it 'should report a version number' do
