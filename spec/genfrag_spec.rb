@@ -8,7 +8,7 @@ describe Genfrag do
     @app = Genfrag
   end
 
-  it "finds things releative to 'root'" do
+  it "finds things relative to 'root'" do
     Genfrag.path(%w[lib genfrag debug]).
         should == File.join(@root_dir, %w[lib genfrag debug])
   end
