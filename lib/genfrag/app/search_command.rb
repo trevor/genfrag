@@ -159,6 +159,20 @@ END
       raise ArgumentError, "Must specify --fileadapters when using a named_adapter"
     end
     
+    if @ops.adapter5_size and @ops.adapter5_sequence
+      raise ArgumentError, '--adapter5-sequence and --adapter5-size both supplied, may only have one'
+    end
+    if @ops.adapter3_size and @ops.adapter3_sequence
+      raise ArgumentError, '--adapter3-sequence and --adapter3-size both supplied, may only have one'
+    end
+    
+    if (@ops.adapter5_sequence or @ops.adapter5_size) and !@ops.adapter5
+      raise ArgumentError, '--adapter5 missing in presence of --adapter5-sequence or --adapter5-size'
+    end
+    if (@ops.adapter3_sequence or @ops.adapter3_size) and !@ops.adapter3
+      raise ArgumentError, '--adapter3 missing in presence of --adapter3-sequence or --adapter3-size'
+    end
+    
     if processed_adapters
       adapter_setup_1(processed_adapters)
     else
@@ -171,13 +185,6 @@ END
     if @adapters[:adapter3_specificity] =~ /^_/
       seq3 = Bio::Sequence::NA.new(@adapters[:adapter3_specificity][1..-1]).downcase
       @adapters[:adapter3_specificity] = seq3.complement.to_s
-    end
-    
-    if @ops.adapter5_size and @ops.adapter5_sequence and (@ops.adapter5_size != @adapters[:adapter5_size])
-      raise ArgumentError, '--adapter5-sequence and --adapter5-size both supplied, may only have one'
-    end
-    if @ops.adapter3_size and @ops.adapter3_sequence and (@ops.adapter3_size != @adapters[:adapter3_size])
-      raise ArgumentError, '--adapter3-sequence and --adapter3-size both supplied, may only have one'
     end
 
     @trim = calculate_trim_for_nucleotides(@re5_ds, @re3_ds)

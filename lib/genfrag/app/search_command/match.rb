@@ -55,28 +55,19 @@ class SearchCommand < Command
       raise "First argument to matches_adapter must be a '5' or a '3'. Received: #{five_or_three.inspect}"
     end
 
+    # old ...
     #return false if raw_frag[ [trim_primary, trim_complement].max .. -1 ] !~ /^#{adapter_specificity}/i
-
     #overhang = [trim_primary, trim_complement].max - [trim_primary, trim_complement].min
-
     #lead_in = overhang
+    
+
 
     if adapter_sequence
-      raise 'FIXME - not functional yet'
-
-  #      if lead_in >= adapter_sequence.size
-  #        # need to preserve dots on primary string
-  #        new_primary_frag = ('.' * (lead_in - adapter_sequence.size)) + adapter_sequence + primary_frag[ lead_in .. -1 ]
-  #        new_complement_frag = complement_frag
-  #      else
-  #        # need to add dots to beginning of complement string
-  #        new_primary_frag = adapter_sequence + primary_frag[ lead_in .. -1 ]
-  #        new_complement_frag = ('.' * (adapter_sequence.size - lead_in) ) + complement_frag
-  #      end
-
+      new_primary_frag, new_complement_frag = preserve_or_add(adapter_sequence.size, lead_in, adapter_sequence, primary_frag, complement_frag)
     elsif adapter_size
-      raise 'FIXME - not functional yet'
 
+
+  # old ...
   #      # only the size and the specificity of the adapter has been provided
   #      size_of_specificity = adapter_specificity.size
   #      size_of_sequence    = adapter_size - size_of_specificity
@@ -157,6 +148,23 @@ class SearchCommand < Command
       raise "Sequence #{s} has no cuts (defined by symbol '^')"
     end
 
+  end
+  
+  def preserve_or_add(size, lead_in, adapter_sequence, primary_frag, complement_frag)
+    if adapter_sequence.nil? or adapter_sequence.empty?
+      adapter_sequence = '?' * size
+    end
+    
+    if lead_in >= size
+    # need to preserve dots on primary string
+      p = ('=' * (lead_in - size)) + adapter_sequence + primary_frag[ lead_in .. -1 ]
+      c = complement_frag
+    else
+    # need to add dots to beginning of complement string
+      p = adapter_sequence + primary_frag[ lead_in .. -1 ]
+      c = ('=' * (size - lead_in) ) + complement_frag
+    end
+    [p,c]
   end
 
 end  # class SearchCommand

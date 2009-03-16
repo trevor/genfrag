@@ -205,12 +205,49 @@ the complement strand would have a plus symbol in place of the initial 'a' and t
 
 example 7
 
-Using an adapter and specifying an adapter size
+Using an adapter and specifying an adapter sequence
 
-You may know the size of your adapter
+You may have particular adapter sequences that you have used. These can be specified with 'adapter5-sequence' or 'adapter3-sequence'.
+Note that 'adapter3-sequence' will be reversed when applied to the primary strand. Any change to the sequence caused
+by the sequence will be noted with an equals ('=') symbol.
+
+genfrag search -f example.fasta --re5 BstYI --re3 MseI -v --adapter5 ttgtcg --adapter3 aacca --adapter5-sequence NXNXNXNX --adapter3-sequence NZNZNZNZ
+
+  ---
+  - sequence
+    gattgcaacaatcgctttggaggatgtaattgtgcaattggccaatgcacaaatcgacaatgtccttgttttgctgctaatcgtgaatgcgatccagatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttttaattggggtgcatttacatgggactctcttaaaaagaatgagtatctcggagaatatactggagaactgatcactcatgatgaagctaatgagcgtgggagaatagaagatcggattggttcttcctacctctttaccttgaatgatca
+  - sequence size
+    380
+  - fragment - primary strand
+    gatctttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttt..
+  - fragment - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+  - fragment with adapters - primary strand
+    NXNXNXNXttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttZNZNZNZN
+  - fragment with adapters - complement strand
+    ===....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat=====
 
 
+example 8
 
+The previous example but with short adapter sequences
+
+  genfrag search -f example.fasta --re5 BstYI --re3 MseI --adapter5 ttgtcg --adapter3 aacca --adapter5-sequence X --adapter3-sequence Z
+
+  ---
+  - fragment with adapters - primary strand
+    ====XttgtcggagttgtcctcttagctgtggagatggcactcttggtgagacaccagtgcaaatccaatgcaagaacatgcaataataaaaagattctcattggaaagtctgatgttcatggattcatggttZ==
+  - fragment with adapters - complement strand
+    ....aaacagcctcaacaggagaatcgacacctctaccgtgagaaccactctgtggtcacgtttaggttacgttcttgtacgttattatttttctaagagtaacctttcagactacaagtacctaagtaccaaaat
+
+
+example 9
+
+    Using an adapter and specifying an adapter size
+
+    You may know the size of your adapter
+    
+    
 Footnotes
 [1]: 
 require 'rubygems'
