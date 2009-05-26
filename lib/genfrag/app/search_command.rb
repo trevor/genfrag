@@ -3,7 +3,6 @@ module Genfrag
 class App
 
 class SearchCommand < Command
-
   def cli_run( args )
     parse args
 

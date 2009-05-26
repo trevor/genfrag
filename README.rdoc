@@ -24,7 +24,11 @@ This works
 
 == REQUIREMENTS:
 
-* bioruby
+* bio
+
+
+=== Optional
+
 * sqlite3-ruby
 
 

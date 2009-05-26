@@ -24,12 +24,13 @@ PROJ.authors = 'Pjotr Prins and Trevor Wennblom'
 PROJ.email = 'trevor@corevx.com'
 PROJ.url = 'http://genfrag.rubyforge.org'
 PROJ.version = Genfrag::VERSION
-PROJ.release_name = 'Rough Draught'
+PROJ.release_name = ''
 PROJ.ruby_opts = %w[-W0]
 PROJ.readme_file = 'README.rdoc'
 PROJ.ignore_file = '.gitignore'
 PROJ.exclude << 'genfrag.gemspec'
 PROJ.exclude << '.git'
+PROJ.dependencies = ['bio']
 
 PROJ.rubyforge.name = 'genfrag'
 

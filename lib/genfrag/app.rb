@@ -4,18 +4,14 @@ else
   require 'rubygems'
 end
 
-begin
-  require 'sqlite3'
-rescue LoadError
-  $stderr.print "Warning: no sqlite installed"
-end
-
 require 'fileutils'
 require 'optparse'
 require 'ostruct'
-require 'bio'
 require 'csv'
 
+require 'bio'
+#autoload :SQLite3, 'sqlite3' # => no such file to load -- sqlite3 (LoadError)
+require 'sqlite3'
 
 module Genfrag
 class App
