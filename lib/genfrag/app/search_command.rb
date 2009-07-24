@@ -251,7 +251,7 @@ END
           next if !good
         end
         
-        results << {:raw_frag => raw_frag, :primary_frag => primary_frag, :primary_frag_with_adapters => primary_frag_with_adapters, :complement_frag => complement_frag, :complement_frag_with_adapters => complement_frag_with_adapters, :entry => entry, :seq => seq}
+        results << {:raw_frag => raw_frag, :primary_frag => primary_frag, :primary_frag_with_adapters => primary_frag_with_adapters, :complement_frag => complement_frag, :complement_frag_with_adapters => complement_frag_with_adapters, :entry => entry, :seq => seq, :definitions => @sequences[entry[:fasta_id]][:definitions]}
       end
     end
   
@@ -264,6 +264,7 @@ END
       raise "shouldn't happen" if sorted_results[r[:seq]] != nil
       sorted_results[r[:seq]] = {}
       x = sorted_results[r[:seq]]
+      x['fasta definition'] = r[:definitions]
       x['sequence size'] = r[:seq].size
       x['fragment - primary strand'] = r[:primary_frag]
       x['fragment - complement strand'] = r[:complement_frag]
@@ -272,7 +273,7 @@ END
     end
 
     if @ops.verbose
-      ary = ['sequence size', 'fragment - primary strand', 'fragment - complement strand',
+      ary = ['fasta definition', 'sequence size', 'fragment - primary strand', 'fragment - complement strand',
         'fragment with adapters - primary strand', 'fragment with adapters - complement strand']    
     else
       ary = ['fragment with adapters - primary strand', 'fragment with adapters - complement strand']    
