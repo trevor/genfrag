@@ -47,7 +47,7 @@ task 'ann:prereqs' do
   PROJ.name = 'Genfrag'
 end
 
-depend_on 'bioruby'
+depend_on 'bio'
 depend_on 'rake'
 
 
