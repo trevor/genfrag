@@ -64,11 +64,11 @@ class IndexCommand < Command
     end
 
     def write_entry_to_fasta_sqlite(normalized_fasta_id, seq, definitions)
-      @normalized_fasta.execute( "insert into db_normalized_fasta values ( ?, ?, ? )", normalized_fasta_id, CSV.generate_line(definitions), seq )
+      @normalized_fasta.execute( "insert into db_normalized_fasta values ( ?, ?, ? )", normalized_fasta_id, definitions.join('!!-genfrag-!!'), seq )
     end
     
     def write_entry_to_fasta_csv(normalized_fasta_id, seq, definitions)
-      @normalized_fasta.puts [normalized_fasta_id,CSV.generate_line(definitions),seq].join("\t")
+      @normalized_fasta.puts [normalized_fasta_id,definitions.join('!!-genfrag-!!'),seq].join("\t")
     end
     
     

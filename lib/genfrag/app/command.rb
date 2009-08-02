@@ -77,7 +77,7 @@ class Command
           lambda { |value|
             options[:re3] = value
           }],
-      :sqlite => ['-t', '--sqlite', 'use sqlite', '(default is CSV)',
+      :sqlite => ['-t', '--sqlite', 'use sqlite', '(default is tab-delimited)',
           lambda {
             options[:sqlite] = true
           }],

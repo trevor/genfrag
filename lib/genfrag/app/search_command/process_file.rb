@@ -13,7 +13,7 @@ class SearchCommand < Command
         f_normalized_fasta[1..-1].each do |line|
           line = line.chomp.split("\t")
           id = line[0].to_i
-          sequences[id] = {:definitions => CSV.parse_line(line[1]), :sequence => line[2]}
+          sequences[id] = {:definitions => line[1].split('!!-genfrag-!!'), :sequence => line[2]}
         end
         return sequences
       end
@@ -23,7 +23,7 @@ class SearchCommand < Command
         sequences = {}
         db_normalized_fasta.execute( "select * from db_normalized_fasta" ) do |row|
           id = row[0].to_i
-          sequences[id] = {:definitions => CSV.parse_line(row[1]), :sequence => row[2]}
+          sequences[id] = {:definitions => row[1].split('!!-genfrag-!!'), :sequence => row[2]}
         end
         return sequences
       end

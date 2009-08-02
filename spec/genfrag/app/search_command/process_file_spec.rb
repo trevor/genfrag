@@ -51,7 +51,7 @@ describe Genfrag::App::SearchCommand::ProcessFile do
     describe 'with an array of data' do
       before :all do
         ary = [ %w(id Definitions Sequence),
-                [1,'DescA,DescB','seq-abc'],
+                [1,'DescA!!-genfrag-!!DescB','seq-abc'],
                 [2,'DescC','seq-def'],
                 [3,'DescD,DescE,DescF','seq-ghi'] ]
         d = ary.map {|x| x.join("\t")}
