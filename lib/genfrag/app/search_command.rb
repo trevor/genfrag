@@ -22,8 +22,8 @@ class SearchCommand < Command
     end
     
       if options[:fileadapters]
-      processed_adapters = SearchCommand::ProcessFile.process_tdf_adapters( IO.readlines( Genfrag.name_adapters(options[:fileadapters]) + '.tdf' ), options[:named_adapter5], options[:named_adapter3] )
-    end
+        processed_adapters = SearchCommand::ProcessFile.process_tdf_adapters( IO.readlines( Genfrag.name_adapters(options[:fileadapters]) + '.tdf' ), options[:named_adapter5], options[:named_adapter3] )
+      end
     
     run(options, processed_fasta_file, processed_freq_lookup, processed_adapters, true)
   end

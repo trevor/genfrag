@@ -1,5 +1,9 @@
 
-require File.join(File.dirname(__FILE__), %w[spec_helper])
+if RUBY_VERSION < '1.9.2'
+  require File.join(File.dirname(__FILE__), %w[spec_helper])
+else
+  require File.join(Dir.pwd, File.dirname(__FILE__), %w[spec_helper])
+end
 
 describe Genfrag do
   

@@ -128,7 +128,7 @@ END
     end
     
     if @ops.verbose
-      @sizes.each { |@entry| cli_p(cli, @entry.inspect) }
+      @sizes.each { |entry| cli_p(cli, entry.inspect) }
     else
       cli_p(cli, "Cut sites found: #{@sizes.values.flatten.size / 2}")
     end
