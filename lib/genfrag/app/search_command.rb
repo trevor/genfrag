@@ -132,14 +132,16 @@ class SearchCommand < Command
     @sequences = processed_fasta_file
     @adapters = {}
     @re5_ds, @re3_ds = [@ops.re5, @ops.re3].map {|x| Bio::RestrictionEnzyme::DoubleStranded.new(x)}
+    @re5_ds_aligned_strands_with_cuts_primary = @re5_ds.aligned_strands_with_cuts.primary
+    @re3_ds_aligned_strands_with_cuts_primary = @re3_ds.aligned_strands_with_cuts.primary
     if @ops.verbose
       cli_p(cli, <<-END
 RE5: #{@ops.re5}
-#{@re5_ds.aligned_strands_with_cuts.primary}
+#{@re5_ds_aligned_strands_with_cuts_primary}
 #{@re5_ds.aligned_strands_with_cuts.complement}
 
 RE3: #{@ops.re3}
-#{@re3_ds.aligned_strands_with_cuts.primary}
+#{@re5_ds_aligned_strands_with_cuts_primary}
 #{@re3_ds.aligned_strands_with_cuts.complement}
 
 adapter5: #{@ops.adapter5}
@@ -224,12 +226,12 @@ END
         
       # note the next two if-statements at this level chain together with 'p' and 'c'
         if @adapters[:adapter5_specificity]
-          p, c = matches_adapter(5, p, c, raw_frag, @trim)
+          p, c = matches_adapter(5, p, c, raw_frag, @trim, @re5_ds_aligned_strands_with_cuts_primary)
           next if !p  # next if returned false -- no match
         end
         
         if @adapters[:adapter3_specificity]
-          p, c = matches_adapter(3, p, c, raw_frag, @trim)
+          p, c = matches_adapter(3, p, c, raw_frag, @trim, @re3_ds_aligned_strands_with_cuts_primary)
           next if !p  # next if returned false -- no match
         end
         

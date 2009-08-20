@@ -6,7 +6,7 @@ class SearchCommand < Command
 
 # Does the sequence match the adapter
 #
-  def matches_adapter(five_or_three, primary_frag, complement_frag, raw_frag, trim)
+  def matches_adapter(five_or_three, primary_frag, complement_frag, raw_frag, trim, primary_strand)
     adapter_specificity = nil
     adapter_sequence    = nil
     adapter_size        = nil
@@ -14,7 +14,7 @@ class SearchCommand < Command
     trim_complement     = nil
 
     if five_or_three == 5
-      tail = right_tail_of(Bio::RestrictionEnzyme::DoubleStranded.new(@ops.re5).aligned_strands_with_cuts.primary)
+      tail = right_tail_of(primary_strand)
 
       adapter_specificity = @adapters[:adapter5_specificity].upcase
       adapter_sequence    = @adapters[:adapter5_sequence].upcase if @adapters[:adapter5_sequence]
@@ -30,7 +30,7 @@ class SearchCommand < Command
       return false if primary_frag[ lead_in .. -1 ].tr('.', '') !~ /^#{adapter_specificity}/i
 
     elsif five_or_three == 3
-      tail = left_tail_of(Bio::RestrictionEnzyme::DoubleStranded.new(@ops.re3).aligned_strands_with_cuts.primary)
+      tail = left_tail_of(primary_strand)
 
       if @adapters[:adapter3_specificity][0].chr == '_'
         adapter_specificity = @adapters[:adapter3_specificity][1..-1].reverse.upcase
